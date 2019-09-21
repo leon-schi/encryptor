@@ -17,5 +17,4 @@ export class DetailsPage implements OnInit {
             this.id = params.get('id');
         });
     }
-
 }

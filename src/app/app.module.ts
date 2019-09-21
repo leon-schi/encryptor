@@ -8,6 +8,9 @@ import { StatusBar } from '@ionic-native/status-bar/ngx';
 
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
+import { SQLite } from '@ionic-native/sqlite/ngx';
+
+import { SQLiteMock } from './sqlite.mock'
 
 @NgModule({
   declarations: [AppComponent],
@@ -16,6 +19,8 @@ import { AppRoutingModule } from './app-routing.module';
   providers: [
     StatusBar,
     SplashScreen,
+    //SQLite,
+    { provide: SQLite, useClass: SQLiteMock },
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
   ],
   bootstrap: [AppComponent]

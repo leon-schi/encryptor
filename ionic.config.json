@@ -1,5 +1,7 @@
 {
   "name": "ng-cryptor",
-  "integrations": {},
+  "integrations": {
+    "cordova": {}
+  },
   "type": "angular"
 }

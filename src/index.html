@@ -13,6 +13,19 @@
 
   <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
 
+  <script src="assets/dist/sql-wasm.js"></script>
+  <script>
+    var SQL = null;
+
+    var config = {
+      locateFile: filename => `/assets/dist/${filename}` 
+    }
+
+    initSqlJs(config).then(function(S){
+      SQL = S;
+    });
+  </script>
+
   <!-- add to homescreen for ios -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
