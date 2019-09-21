@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
 import { HomePage } from './home.page';
+import { DetailsPage } from './details/details.page';
+import { ModalPage } from './modal/modal.page';
 
 @NgModule({
   imports: [
@@ -15,9 +17,13 @@ import { HomePage } from './home.page';
       {
         path: '',
         component: HomePage
-      }
+      }, {
+        path: 'details/:id',
+        component: DetailsPage
+      },
     ])
   ],
-  declarations: [HomePage]
+  entryComponents:[ModalPage],
+  declarations: [HomePage, DetailsPage, ModalPage]
 })
 export class HomePageModule {}
