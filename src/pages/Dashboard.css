@@ -1,7 +1,4 @@
-.item {
-    height: 50px
-}
-
-.fab {
-    padding-bottom: 10px
+.modal {
+    padding: 250px 50px;
+    height: 100%
 }
