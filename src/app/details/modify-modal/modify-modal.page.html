@@ -16,21 +16,23 @@
         <ion-text>
             <h6 style="font-weight: bold">Attribute</h6>
         </ion-text>
-        <ion-text color="primary" class="ion-text-uppercase">
-            <h3 class="ion-no-margin">{{name}}</h3>
-        </ion-text>
+        <div class="attribute-title">
+            <ion-text color="primary">
+                <h3 class="ion-no-margin">{{name}}</h3>
+            </ion-text>
+        </div>
     </div>
 
     <ion-item>
         <ion-label position="stacked">Name</ion-label>
         <ion-input [(ngModel)]="name"></ion-input>
     </ion-item>
-    <ion-item class="headline">
+    <ion-item class="last-input-field">
         <ion-label position="stacked">Value</ion-label>
         <ion-input [(ngModel)]="value"></ion-input>
     </ion-item>
 
-    <ion-button color="primary" fill="outline" expand="block" class="ion-margin-vertical">
+    <ion-button color="primary" fill="outline" expand="block" class="ion-margin-vertical" (click)="save()">
         <ion-icon slot="start" name="save"></ion-icon>
         Save
     </ion-button>

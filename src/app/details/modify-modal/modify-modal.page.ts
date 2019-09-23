@@ -1,16 +1,33 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
+import { Attribute } from '../details.page'
 
 @Component({
   selector: 'modify-modal',
   templateUrl: 'modify-modal.page.html',
   styleUrls: ['modify-modal.page.scss'],
 })
-export class ModifyModalPage {
-    @Input() name: string;
-    @Input() value: string;
+export class ModifyModalPage implements OnInit {
+    @Input() attribute: Attribute;
+    @Input() controller: any;
+
+    name: string;
+    value: string;
 
     constructor(private modalCtrl: ModalController) {}
+
+    ngOnInit() {
+        this.name = this.attribute.name;
+        this.value = this.attribute.value;
+    }
+
+    save() {
+        this.attribute.name = this.name;
+        this.attribute.value = this.value;
+
+        this.controller.insertAttribute(this.attribute);
+        this.dismiss();
+    }
 
     dismiss() {
         this.modalCtrl.dismiss({

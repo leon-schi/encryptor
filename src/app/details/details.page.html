@@ -34,51 +34,31 @@
         </ion-item>
       </ion-col>
       <ion-col size="2">
-          <ion-button fill="clear" color="medium" (click)="toggleVisibility()" class="ion-float-right">
+          <ion-button fill="clear" color="medium" class="ion-float-right" (click)="copyAttribute(attribute)">
             <ion-icon slot="icon-only" name="albums"></ion-icon>
           </ion-button>
       </ion-col>
     </ion-row>
   </ion-grid>
 
-    <!--<ion-list>
-      <ion-item *ngFor="let attribute of attributes" >
-        <ion-grid>
-          <ion-row class="ion-align-items-center"> 
-            <ion-col class="ion-text-start attribute-section">
-                <ion-button fill="clear" (click)="presentModal(attribute)">
-                  <ion-text class="attribute" color="primary">
-                    {{attribute.name}}
-                  </ion-text>
-                </ion-button>
-            </ion-col>
-            <ion-col class="ion-text-start attribute-section">
-                <ion-text>
-                  {{renderPassword(attribute.value)}}
-                </ion-text>
-            </ion-col>
-            <ion-col size="2">
-                <ion-button fill="clear" color="medium" (click)="toggleVisibility()">
-                  <ion-icon slot="icon-only" name="albums"></ion-icon>
-                </ion-button>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
-      </ion-item>
-    </ion-list>-->
-
-    <ion-button class="ion-margin-vertical" color="primary" fill="outline" expand="block" (click)="toggleVisibility()">
-      <div *ngIf="showValues">
-        <ion-icon slot="start" name="eye-off"></ion-icon>
-        hide values
-      </div>
-      <div *ngIf="!showValues">
-        <ion-icon slot="start" name="eye"></ion-icon>
-        show values
-      </div>
-    </ion-button>
-    <ion-button color="danger" fill="outline" expand="block">
-      <ion-icon slot="start" name="trash"></ion-icon>
-      Delete Collection
-    </ion-button>
+  <ion-button class="ion-margin-vertical" color="primary" fill="outline" expand="block" (click)="toggleVisibility()">
+    <div *ngIf="showValues">
+      <ion-icon slot="start" name="eye-off"></ion-icon>
+      hide values
+    </div>
+    <div *ngIf="!showValues">
+      <ion-icon slot="start" name="eye"></ion-icon>
+      show values
+    </div>
+  </ion-button>
+  <ion-button color="danger" fill="outline" expand="block">
+    <ion-icon slot="start" name="trash"></ion-icon>
+    Delete Collection
+  </ion-button>
 </ion-content>
+
+<ion-fab vertical="bottom" horizontal="end" slot="fixed" class="fab">
+  <ion-fab-button color="primary" (click)="addNewAttribute()">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>
