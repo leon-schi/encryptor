@@ -1,0 +1,17 @@
+.rect {
+    border: solid 2px black;
+}
+
+.attribute {
+    font-weight: bold
+}
+
+.attribute-row {
+    border-bottom: solid 1px lightgray
+}
+
+.attribute-section {
+text-overflow: ellipsis;
+  overflow: hidden; 
+  white-space: nowrap;
+}

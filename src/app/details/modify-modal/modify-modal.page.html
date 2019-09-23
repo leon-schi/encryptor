@@ -1,0 +1,41 @@
+<ion-header>
+    <ion-toolbar color="dark">
+        <ion-title>
+            Attribute Detail
+        </ion-title>
+        <ion-buttons slot="primary">
+            <ion-button (click)="dismiss()">
+                <ion-icon slot="icon-only" name="close"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+    <div class="headline">
+        <ion-text>
+            <h6 style="font-weight: bold">Attribute</h6>
+        </ion-text>
+        <ion-text color="primary" class="ion-text-uppercase">
+            <h3 class="ion-no-margin">{{name}}</h3>
+        </ion-text>
+    </div>
+
+    <ion-item>
+        <ion-label position="stacked">Name</ion-label>
+        <ion-input [(ngModel)]="name"></ion-input>
+    </ion-item>
+    <ion-item class="headline">
+        <ion-label position="stacked">Value</ion-label>
+        <ion-input [(ngModel)]="value"></ion-input>
+    </ion-item>
+
+    <ion-button color="primary" fill="outline" expand="block" class="ion-margin-vertical">
+        <ion-icon slot="start" name="save"></ion-icon>
+        Save
+    </ion-button>
+    <ion-button color="danger" fill="outline" expand="block">
+        <ion-icon slot="start" name="trash"></ion-icon>
+        Delete Attribute
+    </ion-button>
+</ion-content>

@@ -1,0 +1,84 @@
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-title>
+      Collection {{collection.name}}
+    </ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="home"></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-grid>
+    <ion-row *ngFor="let attribute of attributes">
+      <ion-col class="ion-text-center">
+        <ion-item class="ion-no-padding" button="true" (click)="presentModal(attribute)">
+            
+            <ion-grid>
+              <ion-row>
+                <ion-col class="ion-text-start attribute-section">
+                  <ion-text color="primary" style="font-weight: bold">
+                    {{attribute.name}}
+                  </ion-text>
+                </ion-col>
+                <ion-col class="ion-text-start attribute-section">
+                  <ion-text>
+                    {{renderPassword(attribute.value)}}
+                  </ion-text>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+
+        </ion-item>
+      </ion-col>
+      <ion-col size="2">
+          <ion-button fill="clear" color="medium" (click)="toggleVisibility()" class="ion-float-right">
+            <ion-icon slot="icon-only" name="albums"></ion-icon>
+          </ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+    <!--<ion-list>
+      <ion-item *ngFor="let attribute of attributes" >
+        <ion-grid>
+          <ion-row class="ion-align-items-center"> 
+            <ion-col class="ion-text-start attribute-section">
+                <ion-button fill="clear" (click)="presentModal(attribute)">
+                  <ion-text class="attribute" color="primary">
+                    {{attribute.name}}
+                  </ion-text>
+                </ion-button>
+            </ion-col>
+            <ion-col class="ion-text-start attribute-section">
+                <ion-text>
+                  {{renderPassword(attribute.value)}}
+                </ion-text>
+            </ion-col>
+            <ion-col size="2">
+                <ion-button fill="clear" color="medium" (click)="toggleVisibility()">
+                  <ion-icon slot="icon-only" name="albums"></ion-icon>
+                </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-item>
+    </ion-list>-->
+
+    <ion-button class="ion-margin-vertical" color="primary" fill="outline" expand="block" (click)="toggleVisibility()">
+      <div *ngIf="showValues">
+        <ion-icon slot="start" name="eye-off"></ion-icon>
+        hide values
+      </div>
+      <div *ngIf="!showValues">
+        <ion-icon slot="start" name="eye"></ion-icon>
+        show values
+      </div>
+    </ion-button>
+    <ion-button color="danger" fill="outline" expand="block">
+      <ion-icon slot="start" name="trash"></ion-icon>
+      Delete Collection
+    </ion-button>
+</ion-content>

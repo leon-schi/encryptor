@@ -3,7 +3,6 @@ import { ModalController } from '@ionic/angular';
 import { ModalPage } from './modal/modal.page';
 
 import { DbService } from '../services/db.service';
-import { Collection } from '../services/model';
 
 @Component({
   selector: 'app-home',
@@ -11,7 +10,6 @@ import { Collection } from '../services/model';
   styleUrls: ['home.page.scss'],
 })
 export class HomePage implements OnInit {
-  collections: Collection[];
   next: number;
 
   modalController: ModalController;
@@ -23,25 +21,20 @@ export class HomePage implements OnInit {
     this.modalController = modalController;
     this.db = db;
 
-    this.collections = [];
     this.next = 2;
   }
 
   ngOnInit() {
     this.db.initDatabase()
-      .then(() => { this.readCollections(); })
+      .then(() => { this.loading = false; })
       .catch((e) => { console.log(e); });
   }
 
-  readCollections() {
-    this.db.getCollecionNames().then((r) => { 
-      this.collections = r; 
-      this.loading = false;
-    });
+  getCollections() {
+    return this.db.getCollectionNames();
   }
 
   addItem() {
-    this.collections.push(new Collection(this.next, 'new Collection ' + this.next, '99999'));
     this.next++;
   }
 
