@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { ModalController, AlertController } from '@ionic/angular';
+import { ModalController, AlertController, LoadingController, ActionSheetController } from '@ionic/angular';
 import { ModalPage } from './modal/modal.page';
+import { PwModalPage } from './set-pw-modal/set-pw-modal.page';
 
-import { DbService } from '../services/db.service';
+import { CollectionService } from '../services/collection.service';
 
 @Component({
   selector: 'app-home',
@@ -12,26 +13,29 @@ import { DbService } from '../services/db.service';
 export class HomePage implements OnInit {
   next: number = 2;
 
-  loading: boolean = true;
-
   constructor(
     private modalController: ModalController,
     private alertController: AlertController,
-    private db: DbService) {}
+    private loadingController: LoadingController,
+    private actionSheetController: ActionSheetController,
+    private collectionService: CollectionService) {}
 
-  ngOnInit() {
-    this.db.initDatabase()
-      .then(() => { this.loading = false; })
+  async ngOnInit() {
+    let loadingPopup = await this.loadingController.create({ message: 'reading Collections' });
+    await loadingPopup.present();
+
+    this.collectionService.init()
+      .then(() => { loadingPopup.dismiss(); })
       .catch((e) => { console.log(e); });
   }
 
   getCollections() {
-    return this.db.getCollectionNames();
+    return this.collectionService.getCollectionNames();
   }
 
-  addItem2() {
-    this.db.insertCollection('new Collection ' + this.next, "[]");
-      this.next++;
+  async addItem(name: string) {
+    this.collectionService.insertCollection(name, "[]");
+    this.next++;
   }
 
   async presentModal() {
@@ -41,9 +45,11 @@ export class HomePage implements OnInit {
     return await modal.present();
   }
 
-  async addItem(name: string) {
-    this.db.insertCollection(name, "[]");
-    this.next++;
+  async presentPasswordModal() {
+    const modal = await this.modalController.create({
+      component: PwModalPage
+    });
+    return await modal.present();
   }
 
   async presentAddItemAlert() {
@@ -74,4 +80,55 @@ export class HomePage implements OnInit {
     await alert.present();
   }
 
+  async presentPasswordAlert() {
+    const alert = await this.alertController.create({
+      header: 'Enter current Password',
+      inputs: [
+        {
+          name: 'Password',
+          type: 'password',
+          placeholder: 'Password'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'secondary'
+        }, {
+          text: 'Ok',
+          handler: (data) => { this.presentPasswordModal(); }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  async presentSettingsActionSheet() {
+    const actionSheet = await this.actionSheetController.create({
+      header: 'Options',
+      buttons: [
+          {
+              text: 'Change Password',
+              icon: 'create',
+              handler: () => { this.presentPasswordAlert();  }
+          }, {
+              text: 'Log Out',
+              icon: 'log-out',
+              handler: () => { this.presentModal() }
+          }, {
+              text: 'Rate this App',
+              icon: 'star',
+              handler: () => {  }
+          },
+          {
+              text: 'Cancel',
+              icon: 'close',
+              role: 'cancel'
+          }
+        ]
+    });
+    await actionSheet.present();
+  }
 }

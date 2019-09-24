@@ -1,4 +1,38 @@
-<ion-content class="ion-content">
-    <h1>Holger Polze</h1>
-    <ion-button (click)="dismiss()">Close</ion-button>
+<ion-content class="ion-content ion-padding">
+
+    <ion-grid>
+        <ion-row>
+            <ion-col>
+                <div class="ion-text-center">
+                    <ion-icon name="lock"></ion-icon>
+                </div>
+            </ion-col>
+        </ion-row>
+        <ion-row>
+            <ion-col>
+                <div class="ion-text-center">
+                    <h1>Encryptor</h1>
+                </div>
+            </ion-col>
+        </ion-row>
+        <ion-row>
+            <ion-col>
+                <div class="ion-text-center">
+                    <span>Please enter the master password!</span>
+                </div>
+            </ion-col>
+        </ion-row>
+        <ion-row class="password-input">
+            <ion-col class="ion-no-padding">
+                <ion-item>
+                    <ion-input color="light" type="password" placeholder="password"></ion-input>
+                </ion-item>
+            </ion-col>
+        </ion-row>
+    </ion-grid>
+
+    <ion-button class="password-input" color="light" fill="outline" expand="block">
+        <ion-icon slot="start" name="checkmark"></ion-icon>
+        Confirm
+    </ion-button>
 </ion-content>

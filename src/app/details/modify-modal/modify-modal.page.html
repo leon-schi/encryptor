@@ -1,6 +1,9 @@
 <ion-header>
     <ion-toolbar color="dark">
-        <ion-title>
+        <ion-title *ngIf="creation">
+            Add a new Attribute
+        </ion-title>
+        <ion-title *ngIf="!creation">
             Attribute Detail
         </ion-title>
         <ion-buttons slot="primary">
@@ -12,9 +15,9 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-    <div class="headline">
+    <div class="headline ion-text-center">
         <ion-text>
-            <h6 style="font-weight: bold">Attribute</h6>
+            <h5 style="font-weight: bold">Attribute</h5>
         </ion-text>
         <div class="attribute-title">
             <ion-text color="primary">
@@ -36,8 +39,14 @@
         <ion-icon slot="start" name="save"></ion-icon>
         Save
     </ion-button>
-    <ion-button color="danger" fill="outline" expand="block" (click)="delete()">
+
+    <ion-button *ngIf="!creation" color="danger" fill="outline" expand="block" (click)="presentDeleteCollectionAlert()">
         <ion-icon slot="start" name="trash"></ion-icon>
         Delete Attribute
+    </ion-button>
+
+    <ion-button *ngIf="creation" color="dark" fill="outline" expand="block" (click)="dismiss()">
+        <ion-icon slot="start" name="close"></ion-icon>
+        Cancel
     </ion-button>
 </ion-content>

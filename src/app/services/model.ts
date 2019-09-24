@@ -1,11 +1,16 @@
 export class Collection {
     id: number;
     name: string;
+    passwordId: number;
+    keySalt: string;
     value: string;
 
-    constructor(id: number, name: string, value: string) {
-        this.id = id;
+    constructor(name: string, value: string) {
+        this.id = 0;
         this.name = name;
         this.value = value;
+
+        this.passwordId = 0;
+        this.keySalt = '0123456789';
     }
 }

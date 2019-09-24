@@ -15,11 +15,29 @@
 </ion-header>
 
 <ion-content class="ion-padding">
+  <ion-row *ngIf="loading">
+    <ion-col>
+      <div class="ion-text-center">
+        <ion-spinner></ion-spinner>
+      </div>
+    </ion-col>
+  </ion-row>
+
+  <ion-row *ngIf="noAttributes()">
+    <ion-col>
+      <div class="ion-text-center">
+        <h4>Nothing here yet!</h4>
+        <ion-text color="medium">
+          <p>Click on the button at the bottom-right to add an Attribute</p>
+        </ion-text>
+      </div>
+    </ion-col>
+  </ion-row>
 
   <ion-grid>
     <ion-row *ngFor="let attribute of attributes">
       <ion-col class="ion-text-center">
-        <ion-item class="ion-no-padding" button="true" (click)="presentModal(attribute)">
+        <ion-item class="ion-no-padding" button="true" (click)="presentModal(attribute, false)">
             
             <ion-grid>
               <ion-row>
@@ -40,7 +58,7 @@
       </ion-col>
       <ion-col size="2">
           <ion-button fill="clear" color="medium" class="ion-float-right" (click)="copyAttribute(attribute)">
-            <ion-icon slot="icon-only" name="albums"></ion-icon>
+            <ion-icon slot="icon-only" name="md-albums"></ion-icon>
           </ion-button>
       </ion-col>
     </ion-row>

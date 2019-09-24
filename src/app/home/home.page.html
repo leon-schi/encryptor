@@ -5,8 +5,8 @@
       Encryptor
     </ion-title>
     <ion-buttons slot="secondary">
-      <ion-button>
-        <ion-icon slot="icon-only" name="close"></ion-icon>
+      <ion-button (click)="presentSettingsActionSheet()">
+        <ion-icon slot="icon-only" name="settings"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -17,7 +17,6 @@
     <h5 style="font-weight: bold">Your Collections</h5>
   </ion-text>
   
-  <ion-spinner *ngIf="loading"></ion-spinner>
   <ion-list *ngIf="!loading">
     <ion-item *ngFor="let coll of getCollections()" routerDirection="forward" [routerLink]="'details/' + coll.id" linesq="full">
       <ion-icon class="padd" slot="start" name="md-key" color="primary"></ion-icon>

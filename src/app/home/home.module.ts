@@ -6,6 +6,7 @@ import { RouterModule } from '@angular/router';
 
 import { HomePage } from './home.page';
 import { ModalPage } from './modal/modal.page';
+import { PwModalPage } from './set-pw-modal/set-pw-modal.page';
 
 @NgModule({
   imports: [
@@ -22,7 +23,7 @@ import { ModalPage } from './modal/modal.page';
       },
     ])
   ],
-  entryComponents:[ModalPage],
-  declarations: [HomePage, ModalPage]
+  entryComponents:[ModalPage, PwModalPage],
+  declarations: [HomePage, ModalPage, PwModalPage]
 })
 export class HomePageModule {}

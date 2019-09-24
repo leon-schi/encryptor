@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { ModalController, ToastController, NavController, AlertController, ActionSheetController } from '@ionic/angular';
-import { DbService } from '../services/db.service'
+import { ModalController, ToastController, NavController, AlertController, ActionSheetController, LoadingController } from '@ionic/angular';
+import { CollectionService } from '../services/collection.service'
 import { Collection } from 'src/app/services/model';
 import { ModifyModalPage } from './modify-modal/modify-modal.page'
 
@@ -18,6 +18,7 @@ export type Attribute = {
 export class DetailsPage implements OnInit {
     private id: number;
     private showValues: boolean = false;
+    loading: boolean = true;
     collection: Collection;
     attributes: Attribute[] = null;
 
@@ -26,19 +27,26 @@ export class DetailsPage implements OnInit {
         private navController: NavController,
         private alertController: AlertController,
         private actionSheetController: ActionSheetController,
-        private db: DbService, 
+        private collectionService: CollectionService,
+        private loadingController: LoadingController,
         private modalCtrl: ModalController, 
         private toastController: ToastController) {}
 
     ngOnInit() {
         this.route.paramMap.subscribe(params => {
+            this.loading = true;
             this.id = parseInt(params.get('id'));
-            this.collection = this.db.getCollectionNameById(this.id);
-            this.db.getCollecionById(this.id).then((collection) => { 
+            this.collection = this.collectionService.getCollectionNameById(this.id);
+            this.collectionService.getCollecionById(this.id).then((collection) => { 
                 this.attributes = JSON.parse(collection.value);
                 this.collection = collection;
+                this.loading = false;
             });
-        });
+        })
+    }
+
+    noAttributes() {
+        return this.attributes != null && this.attributes.length == 0;
     }
 
     toggleVisibility() {
@@ -51,9 +59,8 @@ export class DetailsPage implements OnInit {
     }
 
     private async updateCollection() {
-        await this.db.updateCollection(
+        await this.collectionService.updateCollection(
             this.collection.id,
-            this.collection.name,
             JSON.stringify(this.attributes))
     }
 
@@ -75,13 +82,13 @@ export class DetailsPage implements OnInit {
     }
 
     async deleteCollection() {
-        await this.db.deleteCollection(this.collection.id);
+        await this.collectionService.deleteCollection(this.collection.id);
         this.navController.back();
     }
 
     async renameCollection(newName: string) {
         this.collection.name = newName;
-        await this.updateCollection();
+        await this.collectionService.renameCollection(this.collection.id, newName);
     }
 
     addNewAttribute() {
@@ -89,7 +96,7 @@ export class DetailsPage implements OnInit {
             name: 'New Attribute',
             value: ''
         }
-        this.presentModal(attribute);
+        this.presentModal(attribute, true);
     }
 
     async copyAttribute(attribute) {
@@ -100,12 +107,13 @@ export class DetailsPage implements OnInit {
         toast.present();
     }
 
-    async presentModal(attribute) {
+    async presentModal(attribute, creation) {
         const modal = await this.modalCtrl.create({
             component: ModifyModalPage,
             componentProps: {
                 attribute: attribute,
-                controller: this
+                controller: this,
+                creation: creation
             }
         });
         return await modal.present();
