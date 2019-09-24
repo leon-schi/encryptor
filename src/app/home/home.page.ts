@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { ModalController, AlertController } from '@ionic/angular';
 import { ModalPage } from './modal/modal.page';
 
 import { DbService } from '../services/db.service';
@@ -10,19 +10,14 @@ import { DbService } from '../services/db.service';
   styleUrls: ['home.page.scss'],
 })
 export class HomePage implements OnInit {
-  next: number;
-
-  modalController: ModalController;
-  db: DbService;
+  next: number = 2;
 
   loading: boolean = true;
 
-  constructor(modalController: ModalController, db: DbService) {
-    this.modalController = modalController;
-    this.db = db;
-
-    this.next = 2;
-  }
+  constructor(
+    private modalController: ModalController,
+    private alertController: AlertController,
+    private db: DbService) {}
 
   ngOnInit() {
     this.db.initDatabase()
@@ -34,8 +29,9 @@ export class HomePage implements OnInit {
     return this.db.getCollectionNames();
   }
 
-  addItem() {
-    this.next++;
+  addItem2() {
+    this.db.insertCollection('new Collection ' + this.next, "[]");
+      this.next++;
   }
 
   async presentModal() {
@@ -43,6 +39,39 @@ export class HomePage implements OnInit {
       component: ModalPage
     });
     return await modal.present();
+  }
+
+  async addItem(name: string) {
+    this.db.insertCollection(name, "[]");
+    this.next++;
+  }
+
+  async presentAddItemAlert() {
+    const alert = await this.alertController.create({
+      header: 'Add a new Collection',
+      inputs: [
+        {
+          name: 'Name',
+          type: 'text',
+          placeholder: 'new Collection'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'secondary'
+        }, {
+          text: 'Ok',
+          handler: (data) => {
+            if (data.Name === "") return false
+            this.addItem(data.Name);
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
 
 }

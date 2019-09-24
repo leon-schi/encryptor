@@ -6,6 +6,11 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="home"></ion-back-button>
     </ion-buttons>
+    <ion-buttons slot="secondary">
+      <ion-button (click)="presentActionSheet()">
+        <ion-icon slot="icon-only" name="more"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -51,7 +56,7 @@
       show values
     </div>
   </ion-button>
-  <ion-button color="danger" fill="outline" expand="block">
+  <ion-button color="danger" fill="outline" expand="block" (click)="presentDeleteCollectionAlert()">
     <ion-icon slot="start" name="trash"></ion-icon>
     Delete Collection
   </ion-button>

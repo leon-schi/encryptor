@@ -21,11 +21,16 @@ export class ModifyModalPage implements OnInit {
         this.value = this.attribute.value;
     }
 
-    save() {
+    async save() {
         this.attribute.name = this.name;
         this.attribute.value = this.value;
 
-        this.controller.insertAttribute(this.attribute);
+        await this.controller.insertAttribute(this.attribute);
+        this.dismiss();
+    }
+
+    async delete() {
+        await this.controller.deleteAttribute(this.attribute);
         this.dismiss();
     }
 

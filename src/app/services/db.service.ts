@@ -16,19 +16,15 @@ export class DbService {
     this.sqlite = sqlite;
   }
 
-  private createTables() : Promise<any> {
-    return this.db.sqlBatch([
+  private async createTables() : Promise<any> {
+    await this.db.sqlBatch([
       "CREATE TABLE IF NOT EXISTS collections (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255), value BLOB)",
-    ])
-    
-    
-    .then(() => {
-      this.db.executeSql("INSERT INTO collections VALUES (NULL, 'Amazon', ?)", [mock]);
-    });   
+    ]);
   }
 
-  private readCollections() : Promise<any> {
-    return this.db.executeSql('SELECT id, name FROM collections').then((rs) => { this.collections = this.rsToArray(rs); });
+  private async readCollections() : Promise<any> {
+    let rs = await this.db.executeSql('SELECT id, name FROM collections');
+    this.collections = this.rsToArray(rs);
   }
 
   private checkDb() {
@@ -43,22 +39,15 @@ export class DbService {
     return result;
   }
 
-  public initDatabase() : Promise<any> {
-    return new Promise((resolve, reject) => {
-      
-      this.sqlite.create({
-        name: 'data.db',
-        location: 'default'
-      }).then((db: SQLiteObject) => { 
-        this.db = db;
-        
-        this.createTables().then(() => {
-          this.readCollections().then(() => { resolve('success') })
-            .catch((e) => {reject(e)});
-        }).catch((e) => {reject(e)});
-      }).catch((e) => {reject(e)});
-    
-    })
+  public async initDatabase() : Promise<any> {
+    let db: SQLiteObject = await this.sqlite.create({
+      name: 'data.db',
+      location: 'default'
+    });
+
+    this.db = db;
+    await this.createTables();
+    await this.readCollections();
   }
 
   public getCollectionNames() : Collection[] {
@@ -74,8 +63,27 @@ export class DbService {
     return null;
   }
 
-  public getCollecionById(id: number) : Promise<any> {
+  public async getCollecionById(id: number) : Promise<any> {
     this.checkDb();
-    return this.db.executeSql('SELECT * FROM collections WHERE id = ?', [id]).then((rs) => { return this.rsToArray(rs)[0] });
+    let rs = await this.db.executeSql('SELECT * FROM collections WHERE id = ?', [id]);
+    return this.rsToArray(rs)[0];
+  }
+
+  public async insertCollection(name: string, value: string) {
+    this.checkDb();
+    await this.db.executeSql('INSERT INTO collections VALUES (NULL, ?, ?)', [name, value]);
+    await this.readCollections();
+  }
+
+  public async updateCollection(id: number, name: string, value: string) {
+    this.checkDb();
+    await this.db.executeSql('UPDATE collections SET name = ?, value = ? WHERE id = ?', [name, value, id]);
+    await this.readCollections();
+  }
+
+  public async deleteCollection(id: number) {
+    this.checkDb();
+    await this.db.executeSql('DELETE FROM collections WHERE id = ?', [id]);
+    await this.readCollections();
   }
 }

@@ -6,9 +6,6 @@
     </ion-title>
     <ion-buttons slot="secondary">
       <ion-button>
-        <ion-icon slot="icon-only" name="more"></ion-icon>
-      </ion-button>
-      <ion-button>
         <ion-icon slot="icon-only" name="close"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -31,7 +28,7 @@
 </ion-content>
 
 <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="fab">
-  <ion-fab-button color="primary" (click)="addItem()">
+  <ion-fab-button color="primary" (click)="presentAddItemAlert()">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
