@@ -49,6 +49,13 @@ export class DetailsPage implements OnInit {
             this.attributes.push(attribute);
     }
 
+    deleteAttribute(attribute: Attribute) {
+        let i = this.attributes.indexOf(attribute);
+        if (i === -1) return;
+
+        
+    }
+
     addNewAttribute() {
         let attribute: Attribute = {
             name: 'New Attribute',
