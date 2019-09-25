@@ -13,6 +13,8 @@
 </ion-header>
 
 <ion-content class="ion-padding">
+  <ion-searchbar class="ion-no-padding"></ion-searchbar>
+
   <ion-text color="primary">
     <h5 style="font-weight: bold">Your Collections</h5>
   </ion-text>
@@ -21,7 +23,10 @@
     <ion-item *ngFor="let coll of getCollections()" routerDirection="forward" [routerLink]="'details/' + coll.id" linesq="full">
       <ion-icon class="padd" slot="start" name="md-key" color="primary"></ion-icon>
       <ion-label><h2 style="font-weight: bold">{{coll.name}}</h2></ion-label>
-      <ion-icon slot="end" name="lock" ></ion-icon>
+      
+      <ion-icon *ngIf="!canDecrypt(coll)" slot="end" name="md-lock"></ion-icon>
+      <ion-icon *ngIf="canDecrypt(coll)" slot="end" name="md-unlock" color="primary"></ion-icon>
+
     </ion-item>
   </ion-list>
 </ion-content>

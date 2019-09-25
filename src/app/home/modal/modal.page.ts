@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { ModalController } from '@ionic/angular';
+import { EncryptionService } from '../../services/encryption.service'
 
 @Component({
   selector: 'login-modal',
@@ -7,9 +8,18 @@ import { ModalController } from '@ionic/angular';
   styleUrls: ['modal.page.scss'],
 })
 export class ModalPage {
-    modalCtrl: ModalController;
-    constructor(modalCtrl: ModalController) {
-        this.modalCtrl = modalCtrl;
+    password: string = '';
+    errorMessage: string = null;
+    constructor(private modalCtrl: ModalController, private encryptor: EncryptionService) {}
+
+    verify() {
+        this.encryptor.logIn(this.password).then((success) => {
+            if (success) this.dismiss();
+            else {
+                this.password = '';
+                this.errorMessage = 'wrong password'
+            }
+        });
     }
 
     dismiss() {

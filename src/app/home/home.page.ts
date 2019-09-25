@@ -4,6 +4,8 @@ import { ModalPage } from './modal/modal.page';
 import { PwModalPage } from './set-pw-modal/set-pw-modal.page';
 
 import { CollectionService } from '../services/collection.service';
+import { EncryptionService } from '../services/encryption.service';
+import { Collection } from '../services/model';
 
 @Component({
   selector: 'app-home',
@@ -18,9 +20,27 @@ export class HomePage implements OnInit {
     private alertController: AlertController,
     private loadingController: LoadingController,
     private actionSheetController: ActionSheetController,
-    private collectionService: CollectionService) {}
+    private collectionService: CollectionService,
+    private encryptionService: EncryptionService) {}
 
   async ngOnInit() {
+    await this.forcePassword();
+    await this.forceAuthentification();
+    await this.loadCollections();
+  }
+
+  private async forcePassword() {
+    let masterPasswordSet: boolean = await this.encryptionService.isMasterPasswordSet();
+    if (!masterPasswordSet)
+      await this.presentPasswordModal(true);
+  }
+
+  private async forceAuthentification() {
+    if (!this.encryptionService.isAuthenticated())
+      await this.presentAuthenticationModal();
+  }
+
+  private async loadCollections() {
     let loadingPopup = await this.loadingController.create({ message: 'reading Collections' });
     await loadingPopup.present();
 
@@ -29,8 +49,12 @@ export class HomePage implements OnInit {
       .catch((e) => { console.log(e); });
   }
 
-  getCollections() {
+  getCollections(): Collection[] {
     return this.collectionService.getCollectionNames();
+  }
+
+  canDecrypt(collection: Collection): boolean {
+    return this.encryptionService.canDecrypt(collection);
   }
 
   async addItem(name: string) {
@@ -38,18 +62,25 @@ export class HomePage implements OnInit {
     this.next++;
   }
 
-  async presentModal() {
+  async presentAuthenticationModal() {
     const modal = await this.modalController.create({
-      component: ModalPage
+      component: ModalPage,
+      backdropDismiss: false
     });
-    return await modal.present();
+    await modal.present();
+    return modal.onDidDismiss();
   }
 
-  async presentPasswordModal() {
+  async presentPasswordModal(initial = false) {
     const modal = await this.modalController.create({
-      component: PwModalPage
+      component: PwModalPage,
+      backdropDismiss: !initial,
+      componentProps: {
+        initial: initial
+      }
     });
-    return await modal.present();
+    await modal.present();
+    return modal.onDidDismiss();
   }
 
   async presentAddItemAlert() {
@@ -80,6 +111,15 @@ export class HomePage implements OnInit {
     await alert.present();
   }
 
+  async presentWrongPasswordAlert() {
+    const alert = await this.alertController.create({
+      header: 'Wrong Password!',
+      message: 'The password you entered is incorrect.',
+      buttons: ['OK']
+    });
+    await alert.present();
+  }
+
   async presentPasswordAlert() {
     const alert = await this.alertController.create({
       header: 'Enter current Password',
@@ -97,7 +137,14 @@ export class HomePage implements OnInit {
           cssClass: 'secondary'
         }, {
           text: 'Ok',
-          handler: (data) => { this.presentPasswordModal(); }
+          handler: (data) => {
+            this.encryptionService.logIn(data.Password).then((success) => {
+              if (success)
+                this.presentPasswordModal();
+              else
+                this.presentWrongPasswordAlert();
+            }) 
+          }
         }
       ]
     });
@@ -116,7 +163,7 @@ export class HomePage implements OnInit {
           }, {
               text: 'Log Out',
               icon: 'log-out',
-              handler: () => { this.presentModal() }
+              handler: () => { this.presentAuthenticationModal() }
           }, {
               text: 'Rate this App',
               icon: 'star',

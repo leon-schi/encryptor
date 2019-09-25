@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { ModalController, ToastController, NavController, AlertController, ActionSheetController, LoadingController } from '@ionic/angular';
+import { ModalController, ToastController, NavController, AlertController, ActionSheetController } from '@ionic/angular';
 import { CollectionService } from '../services/collection.service'
-import { Collection } from 'src/app/services/model';
+import { Collection, AuthenticationHelper } from 'src/app/services/model';
 import { ModifyModalPage } from './modify-modal/modify-modal.page'
+
+import { ModalPage } from '../home/modal/modal.page'
 
 export type Attribute = {
     name: string,
@@ -18,6 +20,8 @@ export type Attribute = {
 export class DetailsPage implements OnInit {
     private id: number;
     private showValues: boolean = false;
+    private authHelper: AuthenticationHelper = new AuthenticationHelper(() => { return this.presentAuthenticationModal() });
+
     loading: boolean = true;
     collection: Collection;
     attributes: Attribute[] = null;
@@ -28,7 +32,6 @@ export class DetailsPage implements OnInit {
         private alertController: AlertController,
         private actionSheetController: ActionSheetController,
         private collectionService: CollectionService,
-        private loadingController: LoadingController,
         private modalCtrl: ModalController, 
         private toastController: ToastController) {}
 
@@ -37,16 +40,24 @@ export class DetailsPage implements OnInit {
             this.loading = true;
             this.id = parseInt(params.get('id'));
             this.collection = this.collectionService.getCollectionNameById(this.id);
-            this.collectionService.getCollecionById(this.id).then((collection) => { 
-                this.attributes = JSON.parse(collection.value);
-                this.collection = collection;
-                this.loading = false;
-            });
+            
+            this.authHelper.authenticateOnError(() => {return this.loadAttributes();});
         })
     }
 
-    noAttributes() {
+    private async loadAttributes() {
+        let collection: Collection = await this.collectionService.getCollecionById(this.id)         
+        this.attributes = JSON.parse(collection.value);
+        this.collection = collection;
+        this.loading = false;
+    }
+
+    noAttributesAvailable() {
         return this.attributes != null && this.attributes.length == 0;
+    }
+
+    attributesAvailable() {
+        return this.attributes != null && this.attributes.length > 0;
     }
 
     toggleVisibility() {
@@ -130,7 +141,9 @@ export class DetailsPage implements OnInit {
                     cssClass: 'secondary'
                 }, {
                   text: 'Yes',
-                  handler: () => { this.deleteCollection() }
+                  handler: () => { 
+                        this.authHelper.authenticateOnError(() => {return this.deleteCollection();});
+                    }
                 }
               ]
         });
@@ -181,5 +194,14 @@ export class DetailsPage implements OnInit {
         });
 
         await alert.present();
+    }
+
+    async presentAuthenticationModal() {
+        const modal = await this.modalCtrl.create({
+            component: ModalPage,
+            backdropDismiss: false
+        });
+        await modal.present();
+        return modal.onDidDismiss();
     }
 }

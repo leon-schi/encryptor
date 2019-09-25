@@ -1,30 +1,24 @@
 import { Injectable } from '@angular/core';
-import { SQLite, SQLiteObject } from '@ionic-native/sqlite/ngx';
-import { Collection } from './model'
+import { SQLiteObject } from '@ionic-native/sqlite/ngx';
+import { Collection, Service } from './model'
 import { EncryptionService } from './encryption.service'
 import { DbService } from './db.service'
 
 @Injectable({
   providedIn: 'root'
 })
-export class CollectionService {
+export class CollectionService extends Service {
   private collections: Collection[] = null;
   constructor(
     private dbService: DbService,
-    private encryptor: EncryptionService) { }
+    private encryptor: EncryptionService) {
+      super();
+    }
 
   private async readCollections() : Promise<any> {
     let db: SQLiteObject = await this.dbService.getConnection();
     let rs = await db.executeSql('SELECT id, name, passwordId, keySalt FROM collections');
     this.collections = this.rsToArray(rs);
-  }
-
-  private rsToArray<T>(rs) : T[] {
-    let result = [];
-    for (let i = 0; i < rs.rows.length; i++)
-      result.push(rs.rows.item(i));
-
-    return result;
   }
 
   public async init() : Promise<any> {
@@ -48,7 +42,7 @@ export class CollectionService {
     let db: SQLiteObject = await this.dbService.getConnection();
     let rs = await db.executeSql('SELECT * FROM collections WHERE id = ?', [id]);
     let collection: Collection = <Collection>this.rsToArray(rs)[0];
-    this.encryptor.decryptCollection(collection);
+    collection.value = this.encryptor.decryptCollection(collection);
 
     return collection;
   }
@@ -56,7 +50,7 @@ export class CollectionService {
   public async insertCollection(name: string, value: string) {
     let db: SQLiteObject = await this.dbService.getConnection();
     let collection = new Collection(name, value);
-    this.encryptor.encryptCollection(collection);
+    collection.value = this.encryptor.encryptCollection(collection);
 
     await db.executeSql('INSERT INTO collections VALUES (NULL, ?, ?, ?, ?)', 
       [
@@ -73,7 +67,7 @@ export class CollectionService {
     
     let collection: Collection = await this.getCollecionById(id);
     collection.value = value;
-    this.encryptor.encryptCollection(collection);
+    collection.value = this.encryptor.encryptCollection(collection);
 
     await db.executeSql('UPDATE collections SET value = ? WHERE id = ?', [collection.value, collection.id]);
   }

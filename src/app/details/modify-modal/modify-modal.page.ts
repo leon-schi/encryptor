@@ -2,6 +2,9 @@ import { Component, Input, OnInit } from '@angular/core';
 import { ModalController, AlertController } from '@ionic/angular';
 import { Attribute } from '../details.page'
 
+import { AuthenticationHelper } from '../../services/model'
+import { ModalPage } from '../../home/modal/modal.page'
+
 @Component({
   selector: 'modify-modal',
   templateUrl: 'modify-modal.page.html',

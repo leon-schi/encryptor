@@ -22,16 +22,24 @@
                 </div>
             </ion-col>
         </ion-row>
+        <ion-row class="error-space">
+            <ion-col class="ion-text-center" *ngIf="errorMessage != null">
+                <ion-chip color="light" outline="true">
+                    <ion-icon name="alert"></ion-icon>
+                    <ion-label>{{errorMessage}}</ion-label>
+                </ion-chip>
+            </ion-col>
+        </ion-row>
         <ion-row class="password-input">
             <ion-col class="ion-no-padding">
                 <ion-item>
-                    <ion-input color="light" type="password" placeholder="password"></ion-input>
+                    <ion-input color="light" type="password" placeholder="Password" [(ngModel)]="password"></ion-input>
                 </ion-item>
             </ion-col>
         </ion-row>
     </ion-grid>
 
-    <ion-button class="password-input" color="light" fill="outline" expand="block">
+    <ion-button class="password-input" color="light" fill="outline" expand="block" (click)="verify()">
         <ion-icon slot="start" name="checkmark"></ion-icon>
         Confirm
     </ion-button>

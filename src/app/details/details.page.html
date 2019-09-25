@@ -23,7 +23,7 @@
     </ion-col>
   </ion-row>
 
-  <ion-row *ngIf="noAttributes()">
+  <ion-row *ngIf="noAttributesAvailable()">
     <ion-col>
       <div class="ion-text-center">
         <h4>Nothing here yet!</h4>
@@ -64,7 +64,7 @@
     </ion-row>
   </ion-grid>
 
-  <ion-button class="ion-margin-vertical" color="primary" fill="outline" expand="block" (click)="toggleVisibility()">
+  <ion-button class="ion-margin-vertical" color="primary" fill="outline" expand="block" (click)="toggleVisibility()" *ngIf="attributesAvailable()">
     <div *ngIf="showValues">
       <ion-icon slot="start" name="eye-off"></ion-icon>
       hide values
