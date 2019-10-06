@@ -3,8 +3,14 @@ import { StyleSheet, View, TouchableNativeFeedback } from 'react-native';
 import { Text, Icon } from 'native-base';
 import COLORS from '../Colors'
 
+type Props = {
+    onPress: Function,
+    color: string,
+    icon: string,
+    title: string,
+}
 
-export default class OutlineButton extends React.Component {
+export default class OutlineButton extends React.Component<Props> {
     onPress() {
         if (this.props.onPress)
             this.props.onPress();

@@ -4,6 +4,7 @@ import { Text, Icon } from 'native-base';
 import COLORS from '../Colors'
 
 
+
 export default class Collection extends React.Component {
     
     onPress() {

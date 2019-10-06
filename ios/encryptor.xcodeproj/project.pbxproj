@@ -34,6 +34,9 @@
 		040E79654C704A378FBADAC2 /* rubicon-icon-font.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A13D89456365410BA06F50EE /* rubicon-icon-font.ttf */; };
 		663B3DACCFBA48EE8268FC29 /* SimpleLineIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F5954D2DDCE543679C8A7552 /* SimpleLineIcons.ttf */; };
 		6FDF72A56BF946859F1A84D5 /* Zocial.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9715801A67E44A118F05C4EF /* Zocial.ttf */; };
+		6153FD729825494FB0035B68 /* libGCDWebServers.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A6738095F8BB4C9FAB493C17 /* libGCDWebServers.a */; };
+		B8E47E9D8A2B4222ACA6B5A2 /* libRealmJS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A6718FAF1FCE4F3982FCD2E9 /* libRealmJS.a */; };
+		C9FA7838EE644E00A3F46FB2 /* RealmJSTests.xctest in Resources */ = {isa = PBXBuildFile; fileRef = 2F6D968ABD264F1890461D95 /* RealmJSTests.xctest */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -88,6 +91,10 @@
 		A13D89456365410BA06F50EE /* rubicon-icon-font.ttf */ = {isa = PBXFileReference; name = "rubicon-icon-font.ttf"; path = "../node_modules/native-base/Fonts/rubicon-icon-font.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 		F5954D2DDCE543679C8A7552 /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; name = "SimpleLineIcons.ttf"; path = "../node_modules/native-base/Fonts/SimpleLineIcons.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 		9715801A67E44A118F05C4EF /* Zocial.ttf */ = {isa = PBXFileReference; name = "Zocial.ttf"; path = "../node_modules/native-base/Fonts/Zocial.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		98CB6765CEA84823A3645867 /* RealmJS.xcodeproj */ = {isa = PBXFileReference; name = "RealmJS.xcodeproj"; path = "../node_modules/realm/src/RealmJS.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
+		A6738095F8BB4C9FAB493C17 /* libGCDWebServers.a */ = {isa = PBXFileReference; name = "libGCDWebServers.a"; path = "libGCDWebServers.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
+		A6718FAF1FCE4F3982FCD2E9 /* libRealmJS.a */ = {isa = PBXFileReference; name = "libRealmJS.a"; path = "libRealmJS.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
+		2F6D968ABD264F1890461D95 /* RealmJSTests.xctest */ = {isa = PBXFileReference; name = "RealmJSTests.xctest"; path = "RealmJSTests.xctest"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.cfbundle; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,6 +109,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6153FD729825494FB0035B68 /* libGCDWebServers.a in Frameworks */,
+				B8E47E9D8A2B4222ACA6B5A2 /* libRealmJS.a in Frameworks */,
+				C9FA7838EE644E00A3F46FB2 /* RealmJSTests.xctest in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -165,6 +175,7 @@
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				98CB6765CEA84823A3645867 /* RealmJS.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -548,6 +559,16 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/encryptor.app/encryptor";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../**",
+				);
 			};
 			name = Debug;
 		};
@@ -567,6 +588,16 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/encryptor.app/encryptor";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../**",
+				);
 			};
 			name = Release;
 		};
@@ -586,6 +617,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = encryptor;
 				VERSIONING_SYSTEM = "apple-generic";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../**",
+				);
 			};
 			name = Debug;
 		};
@@ -604,6 +639,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = encryptor;
 				VERSIONING_SYSTEM = "apple-generic";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../**",
+				);
 			};
 			name = Release;
 		};
@@ -631,6 +670,16 @@
 				SDKROOT = appletvos;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 9.2;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../**",
+				);
 			};
 			name = Debug;
 		};
@@ -658,6 +707,16 @@
 				SDKROOT = appletvos;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 9.2;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../**",
+				);
 			};
 			name = Release;
 		};
@@ -684,6 +743,16 @@
 				SDKROOT = appletvos;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/encryptor-tvOS.app/encryptor-tvOS";
 				TVOS_DEPLOYMENT_TARGET = 10.1;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../**",
+				);
 			};
 			name = Debug;
 		};
@@ -710,6 +779,16 @@
 				SDKROOT = appletvos;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/encryptor-tvOS.app/encryptor-tvOS";
 				TVOS_DEPLOYMENT_TARGET = 10.1;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../**",
+				);
 			};
 			name = Release;
 		};
