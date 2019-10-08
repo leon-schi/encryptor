@@ -10,7 +10,7 @@ type Props = {
     title: string,
 }
 
-export default class OutlineButton extends React.Component<Props> {
+class OutlineButton extends React.Component<Props> {
     onPress() {
         if (this.props.onPress)
             this.props.onPress();
@@ -48,3 +48,5 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     }
 });
+
+export { OutlineButton };

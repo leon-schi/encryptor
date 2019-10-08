@@ -56,7 +56,7 @@ class Database {
     private realm: any = null;
     public async getConnection() {
         if (this.realm === null) { 
-            this.realm = await Realm.open({schema: [CollectionSchema, PasswordsSchema]});
+            this.realm = await Realm.open({schema: [CollectionSchema, PasswordsSchema], schemaVersion: 1});
         }
         return this.realm;
     }

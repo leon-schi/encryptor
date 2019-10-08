@@ -2,7 +2,7 @@
 const COLORS: any = {
     primary: '#3880ff',
     danger: '#f04141',
-    statusBar: '#222222',
+    statusBar: '#2870ef',
     header: '#333333',
     dark: '#333333',
 

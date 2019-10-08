@@ -28,14 +28,23 @@ class CollectionService {
         return this.collections;
     }
 
+    public async getCollectionById(id: number): Promise<Collection> {
+        let realm = await this.getConnection();
+        return realm.objects('Collection').filtered('id = ' + id)[0];
+    }
+
     public async insertCollection(name: string, value: string) {
         let collection = new Collection(name, value);
         let realm = await this.getConnection();
         
         let id = 0;
-        try { id = realm.objects('Collection').max('id') + 1 } 
-        catch (e) {}
+        try { 
+            id = realm.objects('Collection').max('id') + 1
+            if (Number.isNaN(id)) id = 0;
+        } catch (e) {}
         collection.id = id;
+
+        console.log(id);
 
         await realm.write(() => {realm.create('Collection', collection)});
         await this.readCollections();

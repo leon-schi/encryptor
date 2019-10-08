@@ -8,7 +8,8 @@ import { Text, Container, H1, Form, Item, Label, Input, Content, Icon } from 'na
 import { Transition } from 'react-navigation-fluid-transitions'
 
 import COLORS from './Colors'
-import OutlineButton from './components/OutlineButton' 
+import { IconicToolButton } from './components/IconicToolButton'
+import { OutlineButton } from './components/OutlineButton' 
 import { Attribute } from './core/db';
 
 let transition = (transitionInfo: any) => {
@@ -97,13 +98,7 @@ export default class Modal extends React.Component<Props, Attribute> {
                             height: Dimensions.get('window').height
                         }}>    
                             <View style={styles.headLayout}>
-                                <View style={{flex: 1}}>
-                                    <TouchableHighlight underlayColor="#dddddd" activeOpacity={0.4} style={{borderRadius: 40}} onPress={this.cancel}>
-                                        <View style={styles.headItemLayout}>
-                                            <Icon type="Feather" name="arrow-left"></Icon>
-                                        </View>
-                                    </TouchableHighlight>
-                                </View>
+                                <IconicToolButton style={{flex: 1}} icon="arrow-left" onPress={this.cancel}></IconicToolButton>
                                 <View style={{flex: 6, paddingLeft: 30}}>
                                     <Text style={{fontSize: 12}}>ATTRIBUTE</Text>
                                     <H1>{this.state.name}</H1>
@@ -111,13 +106,13 @@ export default class Modal extends React.Component<Props, Attribute> {
                             </View>
 
                             <Form style={styles.formLayout}>
-                                <Item fixedLabel>
-                                    <Label style={{fontWeight: 'bold'}}>Name</Label>
-                                    <Input value={this.state.name} onChangeText={(text) => {this.setState({name: text})}}/>
+                                <Item fixedLabel style={{flexDirection: 'row'}}>
+                                    <Label style={{flex: 1, fontWeight: 'bold'}}>Name</Label>
+                                    <Input style={{flex: 4}} value={this.state.name} onChangeText={(text) => {this.setState({name: text})}}/>
                                 </Item>
-                                <Item fixedLabel last>
-                                    <Label style={{fontWeight: 'bold'}}>Value</Label>
-                                    <Input value={this.state.value} onChangeText={(text) => {this.setState({value: text})}} />
+                                <Item fixedLabel last style={{flexDirection: 'row'}}>
+                                    <Label style={{flex: 1, fontWeight: 'bold'}}>Value</Label>
+                                    <Input style={{flex: 4}} value={this.state.value} onChangeText={(text) => {this.setState({value: text})}} />
                                 </Item>
                             </Form>
 

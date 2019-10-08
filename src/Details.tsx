@@ -3,15 +3,19 @@ import {
     NavigationParams,
     NavigationScreenProp,
     NavigationState } from 'react-navigation';
-import { StyleSheet, View, Animated, Easing, TouchableNativeFeedback, TouchableHighlight, Dimensions } from 'react-native';
-import { Container, Content, Fab, Text, Icon, ActionSheet, Root } from 'native-base';
+import { StyleSheet, View, Text, StatusBar } from 'react-native';
+import { Container, Content, Fab, Icon, ActionSheet, Root, H3 } from 'native-base';
 import { Transition } from 'react-navigation-fluid-transitions'
-import { flowTransition } from './Transitions'
+import { flowTransition, fadeTransition, noneTransition } from './Transitions'
+
+import { IconicToolButton } from './components/IconicToolButton'
+import { CollectionTitle } from './components/CollectionTtile'
+import { AttributeItem } from './components/AttributeItem'
+import { OutlineButton } from './components/OutlineButton'
 
 import { CollectionService } from './core/CollectionService'
 import { EncryptionService } from './core/EncryptionService'
 import { Collection, Attribute } from './core/db'
-import OutlineButton from './components/OutlineButton'
 import COLORS from './Colors'
 
 let itemHeight = 55;
@@ -22,36 +26,44 @@ type Props = {
 
 type State = {
     showValues: boolean,
-    attributes: Attribute[]
+    attributes: Attribute[],
+    loading: boolean
 }
 
 export default class DetailsComponent extends React.Component<Props, State> {    
     state: State = {
         showValues: false,
-        attributes: []
+        attributes: [],
+        loading: true
     }
-    private opacity: Animated.Value = new Animated.Value(0);
-    private translateY: Animated.Value = new Animated.Value(40);
     private collectionService: CollectionService = CollectionService.getInstance();
     private encryptionService: EncryptionService = EncryptionService.getInstance();
     private collection: Collection = new Collection('', '[]');
 
     constructor(props: Props) {
         super(props);
-        this.collection = this.props.navigation.getParam('collection', new Collection('', '[]'));
-        this.createItemAnimation(this.opacity, this.translateY, 500, 300).start();
+
+        this.collection.id = this.props.navigation.getParam('id', null);
+        this.collection.name = this.props.navigation.getParam('name', ''); 
+    }
+
+    componentDidMount() {
         this.load();
     }
 
     async load() {
+        this.collection = await this.collectionService.getCollectionById(this.collection.id);
         let attributes: Attribute[] = this.encryptionService.decrypt(this.collection.value);
-        console.log(attributes);
-        this.state.attributes = attributes;
+        this.setState({attributes: attributes, loading: false});
+    }
+
+    quit = () => {
+        this.props.navigation.goBack();
     }
 
     async deleteCollectionAndQuit() {
         await this.collectionService.deleteCollection(this.collection);
-        this.props.navigation.goBack();
+        this.quit();
     }
 
     private async saveAttributes() {
@@ -74,17 +86,6 @@ export default class DetailsComponent extends React.Component<Props, State> {
         await this.saveAttributes();
     }
 
-    createItemAnimation(opacity: Animated.Value, yOffset: Animated.Value, delay: number, duration: number) {
-        let easing = Easing.inOut(Easing.quad);
-        return Animated.sequence([
-            Animated.delay(delay),
-            Animated.parallel([
-                Animated.timing(opacity, {toValue: 1, duration: duration, easing: easing, useNativeDriver: true}),
-                Animated.timing(yOffset, {toValue: 0, duration: duration, easing: easing, useNativeDriver: true})
-            ])
-        ])
-    }
-
     openModal(attribute: Attribute, index: number) {
         this.props.navigation.navigate('Modal', {
             name: attribute.name, 
@@ -99,9 +100,9 @@ export default class DetailsComponent extends React.Component<Props, State> {
     showActionSheet = () => {
         ActionSheet.show(
             {
-            options: ['Rename Collection', 'Cancel'],
-            cancelButtonIndex: 1,
-            title: "Settings"
+                options: ['Rename Collection', 'Cancel'],
+                cancelButtonIndex: 1,
+                title: "Settings"
             },
             buttonIndex => {
                 this.setState({});
@@ -116,94 +117,96 @@ export default class DetailsComponent extends React.Component<Props, State> {
     }
 
     render() {
+        let contentSection;
+        if (this.state.attributes.length > 0) {
+            contentSection = 
+                <View>
+                    {/* Attributes List */}
+                    <View style={{
+                            ...styles.listLayout,
+                            height: (this.state.attributes.length) * itemHeight
+                        }}>
+                        
+                        {this.state.attributes.map((attribute, index) => 
+                            <AttributeItem 
+                                name={attribute.name}
+                                value={this.renderPassword(attribute.value)}
+                                onPress={() => this.openModal(attribute, index)}
+                                onCopy={() => {}}
+                                itemHeight={itemHeight}
+                                style={{}}
+                                key={index}></AttributeItem>
+                        
+                        )}
+                    </View>
+
+                    <OutlineButton 
+                        title={this.state.showValues ? 'HIDE VALUES' : 'SHOW VALUES'} 
+                        icon={this.state.showValues ? 'eye-off' : 'eye'} 
+                        color={COLORS.primary} 
+                        onPress={this.toggleValueVisibility}></OutlineButton>
+                    <OutlineButton 
+                        title="DELETE COLLECTION" 
+                        icon="trash-2" 
+                        color={COLORS.danger}
+                        onPress={() => {this.deleteCollectionAndQuit()}}></OutlineButton>
+                </View>;
+        } else {
+            contentSection = 
+                <View>
+                    <View style={{
+                        ...styles.listLayout,
+                        alignItems: 'center',
+                        backgroundColor: '#eeeeee',
+                        padding: 20,
+                        borderRadius: 5
+                    }}>
+                        <H3 style={{marginBottom: 10}}>Nothing Here Yet!</H3>
+                        <Text style={{color: '#999', textAlign: 'center'}}>You can add Attributes by clicking on the button on the bottom-right.</Text>
+                    </View>
+
+                    <OutlineButton 
+                        title="DELETE COLLECTION" 
+                        icon="trash-2" 
+                        color={COLORS.danger}
+                        onPress={() => {this.deleteCollectionAndQuit()}}></OutlineButton>
+                </View>;
+        }
+
         return (  
             <Root>
                 <Container>
+                    <StatusBar animated={true} backgroundColor="white" barStyle="dark-content" />
+
                     <Content style={styles.contentLayout}>
                         {/* Header Bar */}
                         <View style={styles.headLayout}>
                             {/* Back Button */}
                             <Transition appear='left'>
-                                <View style={{flex: 1}}>
-                                    <TouchableHighlight underlayColor={COLORS.highlight} activeOpacity={0.4} style={{borderRadius: 40}} onPress={() => {this.props.navigation.goBack()}}>
-                                        <View style={styles.headItemLayout}><Icon type="Feather" name="arrow-left"></Icon></View>
-                                    </TouchableHighlight>
-                                </View>
+                                <IconicToolButton style={{flex: 1}} icon="arrow-left" onPress={this.quit}></IconicToolButton>
                             </Transition>
                             {/* Title */}
                             <Transition shared={String(this.collection.id)}>
-                                <View style={{flex: 6, flexDirection: 'column', paddingLeft: 30}}>
-                                    <Text style={{fontSize: 12}}>COLLECTION</Text>
-                                    <Text style={{fontSize: 22}}>{this.collection.name}</Text>
-                                </View>
+                                <CollectionTitle style={{flex: 6}} name={this.collection.name}></CollectionTitle>
                             </Transition>
-
                             {/* Settings Button */}
                             <Transition appear='right'>
-                                <View style={{flex: 1}}>
-                                    <TouchableHighlight underlayColor={COLORS.highlight} activeOpacity={0.4} style={{borderRadius: 40}} onPress={this.showActionSheet}>
-                                        <View style={styles.headItemLayout}>
-                                            <Icon type="Feather" name="settings"></Icon>
-                                        </View>
-                                    </TouchableHighlight>
-                                </View>
+                                <IconicToolButton style={{flex: 1}} icon="settings" onPress={this.showActionSheet}></IconicToolButton>
                             </Transition>
                         </View>
 
-                        
-                        <Animated.View style={{
-                            opacity: this.opacity,
-                            transform: [{translateY: this.translateY}]
-                        }}>
-                        {/* Attributes List */}
-                        <View style={{
-                                ...styles.listLayout,
-                                height: (this.state.attributes.length) * itemHeight
-                            }}>
-                            
-                            {this.state.attributes.map((attribute, index) => 
-                                <View style={styles.listItemLayout} key={index}>
-                                    <View style={{flex: 6}}>
-                                        <TouchableNativeFeedback underlayColor={COLORS.highlight} onPress={() => this.openModal(attribute, index)}>
-                                            <View style={styles.listItemAttributeLayout}>
-                                                <View style={{flex: 1, paddingHorizontal: 5}}>
-                                                    <Text style={styles.listTitleLayout}>{attribute.name}</Text>
-                                                </View>
-                                                <View style={{flex: 1}}>
-                                                    <Text>{this.renderPassword(attribute.value)}</Text>
-                                                </View>    
-                                            </View>
-                                        </TouchableNativeFeedback>
-                                    </View>
-                                    <View style={{flex: 1}}>
-                                        <TouchableNativeFeedback underlayColor={COLORS.highlight}>
-                                            <View style={styles.listItemCopyButtonLayout}>
-                                                <Icon type="Feather" name="copy" style={{color: '#999999'}}></Icon>
-                                            </View>
-                                        </TouchableNativeFeedback>
-                                    </View>
-                                </View>
-                            )}
-                        </View>
 
-                        <OutlineButton 
-                            title={this.state.showValues ? 'HIDE VALUES' : 'SHOW VALUES'} 
-                            icon={this.state.showValues ? 'eye-off' : 'eye'} 
-                            color={COLORS.primary} 
-                            onPress={this.toggleValueVisibility}></OutlineButton>
-                        <OutlineButton 
-                            title="DELETE COLLECTION" 
-                            icon="trash-2" 
-                            color={COLORS.danger}
-                            onPress={() => {this.deleteCollectionAndQuit()}}></OutlineButton>
-                        </Animated.View>
+                        <Transition appear={flowTransition} disappear={noneTransition}>
+                            {contentSection}
+                        </Transition>
 
                     </Content>
+                    
                     <Fab
                         active={true}
                         style={{ backgroundColor: COLORS.primary }}
                         position="bottomRight"
-                        onPress={() => this.openModal(new Attribute('', ''), null)}>
+                        onPress={() => this.openModal(new Attribute('New Attribute', ''), null)}>
                         <Icon name="add"/>
                     </Fab>
                 </Container>
@@ -230,34 +233,5 @@ const styles = StyleSheet.create({
     listLayout: {
         marginTop: 30,
         marginBottom: 30
-    },
-    listItemLayout: {
-        flexDirection: 'row',
-        height: itemHeight,
-        borderBottomWidth: 1,
-        borderColor: COLORS.highlight,
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
-    listItemAttributeLayout: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        height: 55
-    },
-    listItemCopyButtonLayout: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: 55
-    },
-    listTextLayout: {
-        flex: 8,
-        flexDirection: 'row',
-        justifyContent: 'flex-start'
-    },
-    listTitleLayout: {
-        color: COLORS.primary,
-        fontWeight: 'bold'
     }
 });

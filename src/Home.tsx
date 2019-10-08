@@ -1,6 +1,5 @@
 import React from 'react';
-import Biometrics from 'react-native-biometrics'
-import { StyleSheet, View, Animated, TouchableHighlight, TouchableNativeFeedback, ScrollView } from 'react-native';
+import { StyleSheet, View, Animated, StatusBar, TouchableNativeFeedback, ScrollView, TextInput, Dimensions } from 'react-native';
 import { Transition } from 'react-navigation-fluid-transitions'
 import { 
     NavigationEvents, 
@@ -20,9 +19,12 @@ import {
     Input,
     Icon,
     Text } from 'native-base';
+import { CollectionTitle } from './components/CollectionTtile'
+import { IconicToolButton } from './components/IconicToolButton'
 
 import { CollectionService } from './core/CollectionService'
 import { Collection } from './core/db'
+import { fadeTransition } from './Transitions'
 
 import Dialog from "react-native-dialog";
 import COLORS from './Colors';
@@ -51,10 +53,10 @@ export default class HomeComponent extends React.Component<Props, State> {
         loading: true
     }
     collectionService = CollectionService.getInstance();
+    height: number = Dimensions.get('window').height - 90;
 
-    constructor(props: Props) {
-        super(props);
-        this.refreshCollections();
+    componentDidMount() {
+        this.refreshCollections(); 
     }
 
     async refreshCollections() {
@@ -68,7 +70,7 @@ export default class HomeComponent extends React.Component<Props, State> {
     openDetailsFor(collection: Collection) {
         this.state.selectedItemId = collection.id;
         Animated.timing(this.state.opacity, {toValue: 0.1, duration: 300}).start();
-        this.props.navigation.navigate('Details', {collection: collection});
+        this.props.navigation.navigate('Details', {id: collection.id, name: collection.name});
     }
 
     onWillFocus = () => {
@@ -112,50 +114,55 @@ export default class HomeComponent extends React.Component<Props, State> {
                 <Container>
 
                     {/* Header Bar */}
-                    <Header style={styles.headerLayout} androidStatusBarColor={COLORS.statusBar}>
+                    <Header style={styles.headerLayout}>
                         {/* Title */}
                         <Body style={styles.headerBodyLayout}>
-                            <Title style={{fontSize: 20, fontFamily: 'sans-serif'}}>Encryptor</Title>
+                            <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
+                                <Title style={{flex: 7, fontFamily: 'sans-serif-thin', fontSize: 24}}>ENCRYPTOR</Title>
+                                <IconicToolButton style={{flex: 1}} color="white" icon="chevron-down" onPress={() => {}}></IconicToolButton>
+                            </View>
                         </Body>
-                        {/* Settings Button */}
-                        <Right>
-                            <TouchableHighlight underlayColor="#555" activeOpacity={0.4} style={{borderRadius: 40}} onPress={() => {}}>
-                                <View style={{padding: 10}}><Icon type="Feather" name="settings" style={{color: 'white'}}></Icon></View>
-                            </TouchableHighlight>
-                        </Right>
                     </Header>
+                    <StatusBar animated={true} backgroundColor={COLORS.statusBar} barStyle="light-content" />
 
                     <Content>
                         {/* Search Bar */}
-                        <Form>
-                            <Item>
-                                <Icon name="search"></Icon>
-                                <Input placeholder="Search"/>
-                            </Item>
-                        </Form> 
-                        
-                        {/* Collections List */}
-                        <ScrollView style={styles.itemContainerLayout} >
-                            {this.state.collections.map(item => 
-                                    <TouchableNativeFeedback key={item.id} onPress={() => {this.openDetailsFor(item)}}>
-                                        <Animated.View style={{
-                                                ...styles.itemLayout,
-                                                opacity: (item.id == this.state.selectedItemId) ? 1 : this.state.opacity
-                                            }}>
-                                            <Icon type="Feather" name='key' style={{flex: 1, color: COLORS.primary}}/>
-                                            
-                                            <Transition shared={String(item.id)}>
-                                                <View style={{flex: 6, flexDirection: 'column', paddingLeft: 30}}>
-                                                    <Text style={{fontSize: 12}}>COLLECTION</Text>
-                                                    <Text style={{fontSize: 22}}>{item.name}</Text>
-                                                </View>
-                                            </Transition>
+                        {/*<Form>
+                            <View style={{backgroundColor: '#eee', margin: 5, marginVertical: 10, borderRadius: 5}}>
+                                <Item style={{borderWidth: 0}}>
+                                    <Icon name="search"></Icon>
+                                    <TextInput style={{borderWidth: 0}} placeholder="Search"/>
+                                </Item>
+                            </View>
+                        </Form> */}
 
-                                        </Animated.View>
-                                    </TouchableNativeFeedback>
-                            )}
-                        </ScrollView>
-                        
+                        <View style={{flexDirection: 'column', height: this.height}}>
+                                <View elevation={2} style={{flex: 1, marginHorizontal: 10, marginTop: 20, borderRadius: 5, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 0, paddingLeft: 10}}>
+                                    <Icon style={{flex: 1}} name="search"></Icon>
+                                    <TextInput style={{flex: 7}} placeholder="Search"/>
+                                </View>
+                            
+                            {/* Collections List */}
+                            <View style={{flex: 10}}>
+                                <ScrollView style={styles.itemContainerLayout}>
+                                    {this.state.collections.map(item => 
+                                            <TouchableNativeFeedback key={item.id} onPress={() => {this.openDetailsFor(item)}}>
+                                                <Animated.View style={{
+                                                        ...styles.itemLayout,
+                                                        opacity: (item.id == this.state.selectedItemId) ? 1 : this.state.opacity
+                                                    }}>
+                                                    <Icon type="Feather" name='key' style={{flex: 1, color: COLORS.primary}}/>
+                                                    
+                                                    <Transition shared={String(item.id)}>
+                                                        <CollectionTitle style={{flex: 6}} name={item.name}></CollectionTitle>
+                                                    </Transition>
+
+                                                </Animated.View>
+                                            </TouchableNativeFeedback>
+                                    )}
+                                </ScrollView>
+                            </View>
+                        </View>
                         
                     </Content>
 
@@ -174,7 +181,7 @@ export default class HomeComponent extends React.Component<Props, State> {
 
 const styles = StyleSheet.create({
     headerLayout: {
-        backgroundColor: COLORS.header,
+        backgroundColor: COLORS.primary,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center'
