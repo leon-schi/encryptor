@@ -12,14 +12,20 @@ const CollectionSchema = {
     }
   };
 const PasswordsSchema = {
-name: 'Password',
-primaryKey: 'id',
-properties: {
-    id:  {type: 'int', default: 0},
-    hash: 'string',
-    salt: 'string'
-}
+    name: 'Password',
+    primaryKey: 'id',
+    properties: {
+        id:  {type: 'int', default: 0},
+        hash: 'string',
+        salt: 'string'
+    }
 };
+
+class PasswordEntry {
+    id: number = 0;
+    hash: string = null;
+    salt: string = null;
+}
 
 class Collection {
     id: number = 0
@@ -57,9 +63,19 @@ class Database {
     public async getConnection() {
         if (this.realm === null) { 
             this.realm = await Realm.open({schema: [CollectionSchema, PasswordsSchema], schemaVersion: 1});
+
+            /*this.realm.write(() => {
+                let objects = this.realm.objects('Password').filtered('id = 0');
+                if (objects.length == 0) {
+                    this.realm.create('Password', {
+                        id: 0,
+
+                    })
+                }
+            });*/
         }
         return this.realm;
     }
 }
 
-export { Collection, Attribute, Database };
+export { PasswordEntry, Collection, Attribute, Database };

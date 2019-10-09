@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Animated, StatusBar, TouchableNativeFeedback, ScrollView, TextInput, Dimensions } from 'react-native';
+import { StyleSheet, View, Animated, StatusBar, TouchableNativeFeedback, TouchableHighlight, ScrollView, TextInput, Dimensions, ActivityIndicator } from 'react-native';
 import { Transition } from 'react-navigation-fluid-transitions'
 import { 
     NavigationEvents, 
@@ -16,24 +16,28 @@ import {
     Fab,
     Form,
     Item,
-    Input,
+    H3,
     Icon,
     Text } from 'native-base';
 import { CollectionTitle } from './components/CollectionTtile'
 import { IconicToolButton } from './components/IconicToolButton'
+import { Popup } from './components/Dialog'
+import { MessageBox } from './components/MessageBox'
 
 import { CollectionService } from './core/CollectionService'
 import { Collection } from './core/db'
 import { fadeTransition } from './Transitions'
 
-import Dialog from "react-native-dialog";
 import COLORS from './Colors';
 
+function Sleep(milliseconds: number) {
+    return new Promise(resolve => setTimeout(resolve, milliseconds));
+ }
 
 type State = {
     opacity: Animated.Value,
     selectedItemId: number,
-    dialogVisible: boolean,
+    modalVisible: boolean,
     newCollectionName: string,
     collections: Collection[],
     loading: boolean
@@ -43,19 +47,26 @@ type Props = {
     navigation: NavigationScreenProp<NavigationState, NavigationParams>
 }
 
+//let sha256 = require('react-native-sha256')
+
 export default class HomeComponent extends React.Component<Props, State> {
     state: State = {
         opacity: new Animated.Value(1),
         selectedItemId: -1,
-        dialogVisible: false,
+        modalVisible: false,
         newCollectionName: '',
         collections: [],
         loading: true
     }
+    modalScale: Animated.Value = new Animated.Value(1)
     collectionService = CollectionService.getInstance();
     height: number = Dimensions.get('window').height - 90;
 
     componentDidMount() {
+        /*sha256.sha256("Test").then( (hash: any) => {
+            console.log(hash);
+        })*/
+
         this.refreshCollections(); 
     }
 
@@ -69,44 +80,74 @@ export default class HomeComponent extends React.Component<Props, State> {
 
     openDetailsFor(collection: Collection) {
         this.state.selectedItemId = collection.id;
-        Animated.timing(this.state.opacity, {toValue: 0.1, duration: 300}).start();
+        Animated.timing(this.state.opacity, {toValue: 0.1, duration: 600}).start();
         this.props.navigation.navigate('Details', {id: collection.id, name: collection.name});
     }
 
     onWillFocus = () => {
         Animated.sequence([
             Animated.delay(200),
-            Animated.timing(this.state.opacity, {toValue: 1, duration: 300})    
+            Animated.timing(this.state.opacity, {toValue: 1, duration: 600})    
          ]).start();
         this.setState({selectedItemId: -1});
     }
 
-    async addItem(name: string) {
-        await this.collectionService.insertCollection(name, '[]');
+    async addItem() {
+        await this.collectionService.insertCollection(this.state.newCollectionName, '[]');
         await this.refreshCollections();
         this.hideDialog()
     }
 
-    showDialog = () => {this.setState({dialogVisible: true})}
-    hideDialog = () => {this.setState({dialogVisible: false})}
+    showDialog = () => {
+        this.state.newCollectionName = '';
+        this.setState({modalVisible: true})
+    }
+    hideDialog = () => {this.setState({
+        modalVisible: false
+    })}
 
     render() {
+        let messageBox = <></>;
+        if (this.state.collections.length == 0)
+            messageBox = <MessageBox 
+                title="Nothing Here Yet!"
+                message="You can add Attributes by clicking on the button on the bottom-right."/>
+
         return (
             <>
                 {/* Dialog Window */}
-                <Dialog.Container visible={this.state.dialogVisible}>
-                    <Dialog.Title>Create New Collection</Dialog.Title>
-                    <Dialog.Description>
-                        Please enter the name of the new Collection!
-                    </Dialog.Description>
-                    <Dialog.Input 
-                        onChangeText={(text: string) => {this.setState({newCollectionName: text})}} 
-                        value={this.state.newCollectionName} 
-                        label="Collection Name"
-                        wrapperStyle={{borderBottomWidth: 1, borderColor: COLORS.highlight}}></Dialog.Input>
-                    <Dialog.Button label="Cancel" onPress={this.hideDialog}/>
-                    <Dialog.Button label="Create" onPress={() => {this.addItem(this.state.newCollectionName)}}/>
-                </Dialog.Container>
+                <Popup visible={this.state.modalVisible}>
+                        <H3>Create a new Collection</H3>
+                        <Text>Please Enter the name of the new Colection</Text>
+
+                        <View style={{marginVertical: 30}}>
+                            <TextInput 
+                                placeholder="Name" 
+                                style={{borderBottomWidth: 1, borderColor: '#ddd', padding: 1}}
+                                value={this.state.newCollectionName}
+                                onChangeText={(text) => {this.setState({newCollectionName: text})}}/>
+                        </View>
+
+                        <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
+                            <TouchableHighlight
+                                style={{padding: 5}}
+                                onPress={this.hideDialog}>
+                                <Text>CANCEL</Text>
+                            </TouchableHighlight>
+                            <TouchableHighlight
+                                style={{padding: 5}}
+                                onPress={() => {this.addItem()}}>
+                                <Text style={{color: COLORS.primary}}>OK</Text>
+                            </TouchableHighlight>
+                        </View>
+                </Popup>
+
+                <Popup visible={this.state.loading} style={{marginHorizontal: 100, marginTop: 300}}>
+                    <View style={{flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
+                        <ActivityIndicator style={{flex: 1}} size="large" color="#000"/>
+                        <Text style={{flex: 3, textAlign: 'center'}}>loading...</Text>
+                    </View>
+                </Popup>
 
                 <NavigationEvents
                     onWillFocus={this.onWillFocus}></NavigationEvents>
@@ -118,33 +159,29 @@ export default class HomeComponent extends React.Component<Props, State> {
                         {/* Title */}
                         <Body style={styles.headerBodyLayout}>
                             <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
-                                <Title style={{flex: 7, fontFamily: 'sans-serif-thin', fontSize: 24}}>ENCRYPTOR</Title>
+                                <IconicToolButton style={{flex: 1}} color="white" icon="lock" onPress={() => {this.props.navigation.navigate('Login');}}></IconicToolButton>
+                                <Title style={{flex: 7, fontSize: 24}}>Encryptor</Title>
                                 <IconicToolButton style={{flex: 1}} color="white" icon="chevron-down" onPress={() => {}}></IconicToolButton>
                             </View>
                         </Body>
                     </Header>
-                    <StatusBar animated={true} backgroundColor={COLORS.statusBar} barStyle="light-content" />
+                    <StatusBar animated={true} backgroundColor="#222" barStyle="light-content" />
 
                     <Content>
                         {/* Search Bar */}
-                        {/*<Form>
-                            <View style={{backgroundColor: '#eee', margin: 5, marginVertical: 10, borderRadius: 5}}>
-                                <Item style={{borderWidth: 0}}>
-                                    <Icon name="search"></Icon>
-                                    <TextInput style={{borderWidth: 0}} placeholder="Search"/>
-                                </Item>
-                            </View>
-                        </Form> */}
-
                         <View style={{flexDirection: 'column', height: this.height}}>
-                                <View elevation={2} style={{flex: 1, marginHorizontal: 10, marginTop: 20, borderRadius: 5, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 0, paddingLeft: 10}}>
-                                    <Icon style={{flex: 1}} name="search"></Icon>
-                                    <TextInput style={{flex: 7}} placeholder="Search"/>
-                                </View>
+                            <View elevation={2} style={{flex: 1, marginHorizontal: 10, marginTop: 20, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 0, paddingLeft: 10}}>
+                                <Icon style={{flex: 1, color: '#999', marginLeft: 10}} name="search"></Icon>
+                                <TextInput style={{flex: 7, fontSize: 18}} placeholder="Search"/>
+                            </View>
                             
                             {/* Collections List */}
-                            <View style={{flex: 10}}>
+                            <View style={{flex: 10}}>            
                                 <ScrollView style={styles.itemContainerLayout}>
+                                    <Text style={{color: '#999', fontWeight: 'bold', marginBottom: 9}}>YOUR COLLECTIONS</Text>
+                                    
+                                    {messageBox}
+                                    
                                     {this.state.collections.map(item => 
                                             <TouchableNativeFeedback key={item.id} onPress={() => {this.openDetailsFor(item)}}>
                                                 <Animated.View style={{
@@ -181,7 +218,7 @@ export default class HomeComponent extends React.Component<Props, State> {
 
 const styles = StyleSheet.create({
     headerLayout: {
-        backgroundColor: COLORS.primary,
+        backgroundColor: COLORS.dark,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center'

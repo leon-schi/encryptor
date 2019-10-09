@@ -12,6 +12,7 @@ import { IconicToolButton } from './components/IconicToolButton'
 import { CollectionTitle } from './components/CollectionTtile'
 import { AttributeItem } from './components/AttributeItem'
 import { OutlineButton } from './components/OutlineButton'
+import { MessageBox } from './components/MessageBox'
 
 import { CollectionService } from './core/CollectionService'
 import { EncryptionService } from './core/EncryptionService'
@@ -154,16 +155,10 @@ export default class DetailsComponent extends React.Component<Props, State> {
         } else {
             contentSection = 
                 <View>
-                    <View style={{
-                        ...styles.listLayout,
-                        alignItems: 'center',
-                        backgroundColor: '#eeeeee',
-                        padding: 20,
-                        borderRadius: 5
-                    }}>
-                        <H3 style={{marginBottom: 10}}>Nothing Here Yet!</H3>
-                        <Text style={{color: '#999', textAlign: 'center'}}>You can add Attributes by clicking on the button on the bottom-right.</Text>
-                    </View>
+                    <MessageBox
+                        style={styles.listLayout} 
+                        title="Nothing Here Yet!"
+                        message="You can add Attributes by clicking on the button on the bottom-right."/>
 
                     <OutlineButton 
                         title="DELETE COLLECTION" 
@@ -176,7 +171,6 @@ export default class DetailsComponent extends React.Component<Props, State> {
         return (  
             <Root>
                 <Container>
-                    <StatusBar animated={true} backgroundColor="white" barStyle="dark-content" />
 
                     <Content style={styles.contentLayout}>
                         {/* Header Bar */}

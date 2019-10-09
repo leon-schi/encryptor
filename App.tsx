@@ -7,6 +7,7 @@ import { Animated, Easing } from 'react-native'
 import HomeComponent from './src/Home'
 import DetailsComponent from './src/Details'
 import Modal from './src/Modal'
+import Login from './src/Login'
 
 const transitionConfig = {
 	duration: 400,
@@ -18,7 +19,8 @@ const transitionConfig = {
 const MainNavigator: any = createFluidNavigator({
 	'Home': {screen: HomeComponent},
 	'Details': {screen: DetailsComponent},
-	'Modal': {screen: Modal}
+	'Modal': {screen: Modal},
+	'Login': {screen: Login}
 	}, {
 		headerMode: 'none',
 		navigationOptions: {

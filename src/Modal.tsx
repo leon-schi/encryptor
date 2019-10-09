@@ -11,19 +11,7 @@ import COLORS from './Colors'
 import { IconicToolButton } from './components/IconicToolButton'
 import { OutlineButton } from './components/OutlineButton' 
 import { Attribute } from './core/db';
-
-let transition = (transitionInfo: any) => {
-    const { progress, start, end } = transitionInfo;
-    const y = progress.interpolate({
-      inputRange: [start, end],
-      outputRange: [100, 0],
-    });
-    const opacity = progress.interpolate({
-        inputRange: [start, end],
-        outputRange: [0, 1],
-      });
-    return { transform: [{ translateY: y }], opacity: opacity };
-}
+import { flowTransition } from './Transitions'
 
 type Props = {
     navigation: NavigationScreenProp<NavigationState, NavigationParams>
@@ -92,7 +80,7 @@ export default class Modal extends React.Component<Props, Attribute> {
             <Container>
                 <Content style={styles.contentLayout}>
 
-                    <Transition appear={transition}>
+                    <Transition appear={flowTransition}>
                         <View style={{
                             backgroundColor: COLORS.background,
                             height: Dimensions.get('window').height
