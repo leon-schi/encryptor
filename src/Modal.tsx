@@ -3,7 +3,7 @@ import {
     NavigationParams,
     NavigationScreenProp,
     NavigationState } from 'react-navigation';
-import { StyleSheet, Dimensions, View, TouchableHighlight } from 'react-native';
+import { StyleSheet, Dimensions, View, TouchableHighlight, BackHandler } from 'react-native';
 import { Text, Container, H1, Form, Item, Label, Input, Content, Icon } from 'native-base';
 import { Transition } from 'react-navigation-fluid-transitions'
 
@@ -33,6 +33,10 @@ export default class Modal extends React.Component<Props, Attribute> {
         this.index = this.props.navigation.getParam('index', null);
         this.state.name = this.props.navigation.getParam('name', '');
         this.state.value = this.props.navigation.getParam('value', '');    
+    }
+
+    componentDidMount() {
+        BackHandler.addEventListener('hardwareBackPress', () => {this.props.navigation.goBack(); return true;});
     }
 
     async save() {

@@ -24,7 +24,7 @@ const PasswordsSchema = {
 class PasswordEntry {
     id: number = 0;
     hash: string = null;
-    salt: string = null;
+    salt: string = '1234567';
 }
 
 class Collection {
@@ -63,16 +63,6 @@ class Database {
     public async getConnection() {
         if (this.realm === null) { 
             this.realm = await Realm.open({schema: [CollectionSchema, PasswordsSchema], schemaVersion: 1});
-
-            /*this.realm.write(() => {
-                let objects = this.realm.objects('Password').filtered('id = 0');
-                if (objects.length == 0) {
-                    this.realm.create('Password', {
-                        id: 0,
-
-                    })
-                }
-            });*/
         }
         return this.realm;
     }

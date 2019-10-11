@@ -179,6 +179,8 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-rsa-native')
+    implementation project(':react-native-sha256')
     implementation project(':realm')
     implementation project(':react-native-biometrics')
     implementation fileTree(dir: "libs", include: ["*.jar"])

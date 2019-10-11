@@ -3,7 +3,7 @@ import {
     NavigationParams,
     NavigationScreenProp,
     NavigationState } from 'react-navigation';
-import { StyleSheet, View, Text, StatusBar } from 'react-native';
+import { StyleSheet, View, BackHandler } from 'react-native';
 import { Container, Content, Fab, Icon, ActionSheet, Root, H3 } from 'native-base';
 import { Transition } from 'react-navigation-fluid-transitions'
 import { flowTransition, fadeTransition, noneTransition } from './Transitions'
@@ -49,6 +49,7 @@ export default class DetailsComponent extends React.Component<Props, State> {
     }
 
     componentDidMount() {
+        BackHandler.addEventListener('hardwareBackPress', () => {this.props.navigation.goBack(); return true;});
         this.load();
     }
 

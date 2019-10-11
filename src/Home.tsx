@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Animated, StatusBar, TouchableNativeFeedback, TouchableHighlight, ScrollView, TextInput, Dimensions, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Animated, StatusBar, TouchableNativeFeedback, TouchableHighlight, ScrollView, TextInput, Dimensions, ActivityIndicator, Easing } from 'react-native';
 import { Transition } from 'react-navigation-fluid-transitions'
 import { 
     NavigationEvents, 
@@ -8,14 +8,11 @@ import {
     NavigationState } from 'react-navigation';
 import { 
     Container, 
-    Header, 
-    Right,
+    Header,
     Title,
     Body,
     Content,
     Fab,
-    Form,
-    Item,
     H3,
     Icon,
     Text } from 'native-base';
@@ -30,10 +27,6 @@ import { fadeTransition } from './Transitions'
 
 import COLORS from './Colors';
 
-function Sleep(milliseconds: number) {
-    return new Promise(resolve => setTimeout(resolve, milliseconds));
- }
-
 type State = {
     opacity: Animated.Value,
     selectedItemId: number,
@@ -46,8 +39,6 @@ type State = {
 type Props = {
     navigation: NavigationScreenProp<NavigationState, NavigationParams>
 }
-
-//let sha256 = require('react-native-sha256')
 
 export default class HomeComponent extends React.Component<Props, State> {
     state: State = {
@@ -63,10 +54,6 @@ export default class HomeComponent extends React.Component<Props, State> {
     height: number = Dimensions.get('window').height - 90;
 
     componentDidMount() {
-        /*sha256.sha256("Test").then( (hash: any) => {
-            console.log(hash);
-        })*/
-
         this.refreshCollections(); 
     }
 
@@ -80,15 +67,15 @@ export default class HomeComponent extends React.Component<Props, State> {
 
     openDetailsFor(collection: Collection) {
         this.state.selectedItemId = collection.id;
-        Animated.timing(this.state.opacity, {toValue: 0.1, duration: 600}).start();
+        Animated.timing(this.state.opacity, {toValue: 0.1, duration: 800, easing: Easing.inOut(Easing.exp)}).start();
         this.props.navigation.navigate('Details', {id: collection.id, name: collection.name});
     }
 
     onWillFocus = () => {
         Animated.sequence([
             Animated.delay(200),
-            Animated.timing(this.state.opacity, {toValue: 1, duration: 600})    
-         ]).start();
+            Animated.timing(this.state.opacity, {toValue: 1, duration: 600, easing: Easing.inOut(Easing.exp)})    
+        ]).start();
         this.setState({selectedItemId: -1});
     }
 
@@ -159,13 +146,13 @@ export default class HomeComponent extends React.Component<Props, State> {
                         {/* Title */}
                         <Body style={styles.headerBodyLayout}>
                             <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
-                                <IconicToolButton style={{flex: 1}} color="white" icon="lock" onPress={() => {this.props.navigation.navigate('Login');}}></IconicToolButton>
-                                <Title style={{flex: 7, fontSize: 24}}>Encryptor</Title>
-                                <IconicToolButton style={{flex: 1}} color="white" icon="chevron-down" onPress={() => {}}></IconicToolButton>
+                                <IconicToolButton style={{flex: 1}} icon="lock" onPress={() => {this.props.navigation.navigate('Login');}}></IconicToolButton>
+                                <Title style={{flex: 7, fontSize: 24, color: 'black'}}>Encryptor</Title>
+                                <IconicToolButton style={{flex: 1}} icon="chevron-down" onPress={() => {}}></IconicToolButton>
                             </View>
                         </Body>
                     </Header>
-                    <StatusBar animated={true} backgroundColor="#222" barStyle="light-content" />
+                    <StatusBar animated={true} backgroundColor={COLORS.statusBar} barStyle="dark-content" />
 
                     <Content>
                         {/* Search Bar */}
@@ -176,7 +163,7 @@ export default class HomeComponent extends React.Component<Props, State> {
                             </View>
                             
                             {/* Collections List */}
-                            <View style={{flex: 10}}>            
+                            <View style={{flex: 10}}>    
                                 <ScrollView style={styles.itemContainerLayout}>
                                     <Text style={{color: '#999', fontWeight: 'bold', marginBottom: 9}}>YOUR COLLECTIONS</Text>
                                     
@@ -218,7 +205,7 @@ export default class HomeComponent extends React.Component<Props, State> {
 
 const styles = StyleSheet.create({
     headerLayout: {
-        backgroundColor: COLORS.dark,
+        backgroundColor: COLORS.header,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center'

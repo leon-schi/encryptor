@@ -4,6 +4,8 @@ import android.app.Application;
 import android.content.Context;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
+import com.RNRSA.RNRSAPackage;
+import com.sha256lib.Sha256Package;
 import io.realm.react.RealmReactPackage;
 import com.rnbiometrics.ReactNativeBiometricsPackage;
 import com.facebook.react.ReactNativeHost;
