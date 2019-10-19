@@ -2,9 +2,10 @@ import React from 'react';
 import { 
     NavigationParams,
     NavigationScreenProp,
-    NavigationState } from 'react-navigation';
-import { StyleSheet, View, BackHandler } from 'react-native';
-import { Container, Content, Fab, Icon, ActionSheet, Root, H3 } from 'native-base';
+    NavigationState,
+    NavigationEvents } from 'react-navigation';
+import { StyleSheet, View, BackHandler, TouchableHighlight } from 'react-native';
+import { Container, Content, Text, Icon, ActionSheet, Root, H3 } from 'native-base';
 import { Transition } from 'react-navigation-fluid-transitions'
 import { flowTransition, fadeTransition, noneTransition } from './Transitions'
 
@@ -13,6 +14,8 @@ import { CollectionTitle } from './components/CollectionTtile'
 import { AttributeItem } from './components/AttributeItem'
 import { OutlineButton } from './components/OutlineButton'
 import { MessageBox } from './components/MessageBox'
+import { AnimatedFab } from './components/AnimatedFab'
+import { Popup } from './components/Dialog'
 
 import { CollectionService } from './core/CollectionService'
 import { EncryptionService } from './core/EncryptionService'
@@ -28,14 +31,16 @@ type Props = {
 type State = {
     showValues: boolean,
     attributes: Attribute[],
-    loading: boolean
+    loading: boolean,
+    deletionPopupVisible: boolean
 }
 
 export default class DetailsComponent extends React.Component<Props, State> {    
     state: State = {
         showValues: false,
         attributes: [],
-        loading: true
+        loading: true,
+        deletionPopupVisible: false
     }
     private collectionService: CollectionService = CollectionService.getInstance();
     private encryptionService: EncryptionService = EncryptionService.getInstance();
@@ -48,9 +53,19 @@ export default class DetailsComponent extends React.Component<Props, State> {
         this.collection.name = this.props.navigation.getParam('name', ''); 
     }
 
+    onWillFocus = () => {
+        BackHandler.addEventListener('hardwareBackPress', () => {
+            this.quit(); 
+            return true;
+        });
+    }
+
     componentDidMount() {
-        BackHandler.addEventListener('hardwareBackPress', () => {this.props.navigation.goBack(); return true;});
         this.load();
+    }
+
+    componentWillUnmount() {
+        BackHandler.removeEventListener('hardwareBackPress', () => false);
     }
 
     async load() {
@@ -59,7 +74,7 @@ export default class DetailsComponent extends React.Component<Props, State> {
         this.setState({attributes: attributes, loading: false});
     }
 
-    quit = () => {
+    quit = async () => {
         this.props.navigation.goBack();
     }
 
@@ -97,6 +112,13 @@ export default class DetailsComponent extends React.Component<Props, State> {
             controller: this})
     }
     
+    openDeletionPopup = () => {
+        this.setState({deletionPopupVisible: true});
+    }
+    hideDeletionPopup = () => {
+        this.setState({deletionPopupVisible: false});
+    }
+
     toggleValueVisibility = () => {this.setState({showValues: !this.state.showValues})}
 
     showActionSheet = () => {
@@ -151,7 +173,7 @@ export default class DetailsComponent extends React.Component<Props, State> {
                         title="DELETE COLLECTION" 
                         icon="trash-2" 
                         color={COLORS.danger}
-                        onPress={() => {this.deleteCollectionAndQuit()}}></OutlineButton>
+                        onPress={this.openDeletionPopup}></OutlineButton>
                 </View>;
         } else {
             contentSection = 
@@ -165,13 +187,15 @@ export default class DetailsComponent extends React.Component<Props, State> {
                         title="DELETE COLLECTION" 
                         icon="trash-2" 
                         color={COLORS.danger}
-                        onPress={() => {this.deleteCollectionAndQuit()}}></OutlineButton>
+                        onPress={this.openDeletionPopup}></OutlineButton>
                 </View>;
         }
 
         return (  
             <Root>
-                <Container>
+                <NavigationEvents onWillFocus={this.onWillFocus}/>
+
+                <Container style={{marginTop: 18}}>
 
                     <Content style={styles.contentLayout}>
                         {/* Header Bar */}
@@ -181,7 +205,7 @@ export default class DetailsComponent extends React.Component<Props, State> {
                                 <IconicToolButton style={{flex: 1}} icon="arrow-left" onPress={this.quit}></IconicToolButton>
                             </Transition>
                             {/* Title */}
-                            <Transition shared={String(this.collection.id)}>
+                            <Transition appear='top'>
                                 <CollectionTitle style={{flex: 6}} name={this.collection.name}></CollectionTitle>
                             </Transition>
                             {/* Settings Button */}
@@ -196,15 +220,38 @@ export default class DetailsComponent extends React.Component<Props, State> {
                         </Transition>
 
                     </Content>
-                    
-                    <Fab
-                        active={true}
-                        style={{ backgroundColor: COLORS.primary }}
-                        position="bottomRight"
-                        onPress={() => this.openModal(new Attribute('New Attribute', ''), null)}>
-                        <Icon name="add"/>
-                    </Fab>
                 </Container>
+
+                <AnimatedFab
+                    onPress={() => this.openModal(new Attribute('New Attribute', ''), null)}
+                    color={COLORS.primary}>
+                    <Icon name="plus" type="Feather" style={{color: '#fff'}}/>
+                </AnimatedFab>
+
+                <Popup visible={this.state.deletionPopupVisible}>
+                    <H3>Confirm</H3>
+                    <Text>Do you really want to delete the collection '{this.collection.name}'?</Text>
+
+                    <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
+                        <TouchableHighlight
+                            activeOpacity={0.5}
+                            underlayColor="#ccc"
+                            style={{padding: 5, borderRadius: 2, marginRight: 10}}
+                            onPress={this.hideDeletionPopup}>
+                            <Text>CANCEL</Text>
+                        </TouchableHighlight>
+                        <TouchableHighlight
+                            activeOpacity={0.5}
+                            underlayColor="#ccc"
+                            style={{padding: 5, borderRadius: 2}}
+                            onPress={() => {
+                                this.hideDeletionPopup();
+                                this.deleteCollectionAndQuit();
+                            }}>
+                            <Text style={{color: COLORS.danger}}>OK</Text>
+                        </TouchableHighlight>
+                    </View>
+                </Popup>
             </Root>
         );
     }

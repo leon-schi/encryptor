@@ -41,6 +41,8 @@ target 'encryptor' do
 
   pod 'react-native-rsa-native', :path => '../node_modules/react-native-rsa-native'
 
+  pod 'RNGestureHandler', :path => '../node_modules/react-native-gesture-handler'
+
   target 'encryptorTests' do
     inherit! :search_paths
     # Pods for testing

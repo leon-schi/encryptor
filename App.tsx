@@ -10,7 +10,7 @@ import Modal from './src/Modal'
 import Login from './src/Login'
 
 const transitionConfig = {
-	duration: 400,
+	duration: 300,
 	timing: Animated.timing,
 	useNativeDriver: true,
 	delay: 0

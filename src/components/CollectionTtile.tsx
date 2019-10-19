@@ -8,7 +8,6 @@ type Props = {
 }
 
 class CollectionTitle extends React.Component<Props> {
-
     render() {
         return (
             <View style={{

@@ -2,7 +2,8 @@ import React from 'react';
 import { 
     NavigationParams,
     NavigationScreenProp,
-    NavigationState } from 'react-navigation';
+    NavigationState,
+    NavigationEvents } from 'react-navigation';
 import { StyleSheet, Dimensions, View, TouchableHighlight, BackHandler } from 'react-native';
 import { Text, Container, H1, Form, Item, Label, Input, Content, Icon } from 'native-base';
 import { Transition } from 'react-navigation-fluid-transitions'
@@ -35,8 +36,15 @@ export default class Modal extends React.Component<Props, Attribute> {
         this.state.value = this.props.navigation.getParam('value', '');    
     }
 
-    componentDidMount() {
-        BackHandler.addEventListener('hardwareBackPress', () => {this.props.navigation.goBack(); return true;});
+    onWillFocus = () => {
+        BackHandler.addEventListener('hardwareBackPress', () => {
+            this.cancel()
+            return true;
+        });
+    }
+
+    componentWillUnmount() {
+        BackHandler.removeEventListener('hardwareBackPress', () => false);
     }
 
     async save() {
@@ -44,16 +52,16 @@ export default class Modal extends React.Component<Props, Attribute> {
             await this.controller.addAttribute(this.state.name, this.state.value)
         else
             await this.controller.setAttribute(this.state.name, this.state.value, this.index)
-        this.cancel();
+        await this.cancel();
     }
 
     async delete() {
         if (!this.creation)
             await this.controller.deleteAttribute(this.index)
-        this.cancel();
+        await this.cancel();
     }
 
-    cancel = () => {
+    cancel = async () => {
         this.props.navigation.goBack();
     }
 
@@ -81,7 +89,9 @@ export default class Modal extends React.Component<Props, Attribute> {
         }
 
         return (
-            <Container>
+            <Container style={{marginTop: 18}}>
+                <NavigationEvents onWillFocus={this.onWillFocus}/>
+
                 <Content style={styles.contentLayout}>
 
                     <Transition appear={flowTransition}>

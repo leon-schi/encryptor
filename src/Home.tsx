@@ -1,82 +1,80 @@
 import React from 'react';
-import { StyleSheet, View, Animated, StatusBar, TouchableNativeFeedback, TouchableHighlight, ScrollView, TextInput, Dimensions, ActivityIndicator, Easing } from 'react-native';
-import { Transition } from 'react-navigation-fluid-transitions'
+import { StyleSheet, View, StatusBar, TouchableHighlight, TextInput, Dimensions, ActivityIndicator, Animated } from 'react-native';
 import { 
-    NavigationEvents, 
     NavigationParams,
     NavigationScreenProp,
-    NavigationState } from 'react-navigation';
-import { 
-    Container, 
-    Header,
+    NavigationState,
+    NavigationEvents } from 'react-navigation';
+import {
     Title,
     Body,
-    Content,
-    Fab,
     H3,
     Icon,
     Text } from 'native-base';
-import { CollectionTitle } from './components/CollectionTtile'
 import { IconicToolButton } from './components/IconicToolButton'
 import { Popup } from './components/Dialog'
 import { MessageBox } from './components/MessageBox'
+import { ReorderableList } from './components/ReorderableList'
+import { AnimatedFab } from './components/AnimatedFab'
 
-import { CollectionService } from './core/CollectionService'
-import { Collection } from './core/db'
-import { fadeTransition } from './Transitions'
+import { CollectionService, CollectionInfo } from './core/CollectionService'
 
 import COLORS from './Colors';
 
+const itemHeight = 85;
 type State = {
-    opacity: Animated.Value,
-    selectedItemId: number,
     modalVisible: boolean,
     newCollectionName: string,
-    collections: Collection[],
-    loading: boolean
+    collections: CollectionInfo[],
+    loading: boolean,
+    enableSelectionMode: boolean
 }
 
 type Props = {
     navigation: NavigationScreenProp<NavigationState, NavigationParams>
 }
 
+const fabOffsetDistance = 80;
+
 export default class HomeComponent extends React.Component<Props, State> {
     state: State = {
-        opacity: new Animated.Value(1),
-        selectedItemId: -1,
         modalVisible: false,
         newCollectionName: '',
         collections: [],
-        loading: true
+        loading: true,
+        enableSelectionMode: false
     }
-    modalScale: Animated.Value = new Animated.Value(1)
     collectionService = CollectionService.getInstance();
-    height: number = Dimensions.get('window').height - 90;
+    width: number = Dimensions.get('window').width;
+    listController: ReorderableList = null;
+    
+    leftOffset: Animated.Value = new Animated.Value(0);
+    rightOffset: Animated.Value = new Animated.Value(0);
+    fabOffset: Animated.Value = new Animated.Value(0);
+    checkOffset: Animated.Value = new Animated.Value(fabOffsetDistance);
 
     componentDidMount() {
         this.refreshCollections(); 
     }
 
+    onWillFocus = () => {
+        this.setState({collections: this.collectionService.getCollections()});
+    }
+
     async refreshCollections() {
-        let collections = await this.collectionService.getCollections();    
+        await this.collectionService.readCollections();
         this.setState({
             loading: false,
-            collections: (collections == null) ? [] : collections
+            collections: this.collectionService.getCollections()
         })
     }
 
-    openDetailsFor(collection: Collection) {
-        this.state.selectedItemId = collection.id;
-        Animated.timing(this.state.opacity, {toValue: 0.1, duration: 800, easing: Easing.inOut(Easing.exp)}).start();
+    openDetailsFor(collection: CollectionInfo) {
         this.props.navigation.navigate('Details', {id: collection.id, name: collection.name});
     }
 
-    onWillFocus = () => {
-        Animated.sequence([
-            Animated.delay(200),
-            Animated.timing(this.state.opacity, {toValue: 1, duration: 600, easing: Easing.inOut(Easing.exp)})    
-        ]).start();
-        this.setState({selectedItemId: -1});
+    enableSelectionMode = () => {
+        this.setState({enableSelectionMode: true});
     }
 
     async addItem() {
@@ -93,6 +91,36 @@ export default class HomeComponent extends React.Component<Props, State> {
         modalVisible: false
     })}
 
+    startReorderMode() {
+        let offset = 40;
+        Animated.parallel([
+            Animated.timing(this.leftOffset, {toValue: -offset, duration: 200}),
+            Animated.timing(this.rightOffset, {toValue: offset, duration: 200}),
+            Animated.sequence([
+                Animated.timing(this.fabOffset, {toValue: fabOffsetDistance, duration: 200}),
+                Animated.timing(this.checkOffset, {toValue: 0, duration: 200})        
+            ])
+        ]).start();
+    }
+
+    async endReorderMode() {
+        Animated.parallel([
+            Animated.timing(this.leftOffset, {toValue: 0, duration: 200}),
+            Animated.timing(this.rightOffset, {toValue: 0, duration: 200}),
+            Animated.sequence([
+                Animated.timing(this.checkOffset, {toValue: fabOffsetDistance, duration: 200}),
+                Animated.timing(this.fabOffset, {toValue: 0, duration: 200})
+            ])
+        ]).start();
+        
+        let collections: CollectionInfo[] = this.listController.getCopiedItems();
+        if (collections != null) {
+            await this.collectionService.reorderCollections(collections);
+            this.setState({collections: this.collectionService.getCollections()})
+            this.listController.disableMoving();
+        }
+    }
+
     render() {
         let messageBox = <></>;
         if (this.state.collections.length == 0)
@@ -102,32 +130,7 @@ export default class HomeComponent extends React.Component<Props, State> {
 
         return (
             <>
-                {/* Dialog Window */}
-                <Popup visible={this.state.modalVisible}>
-                        <H3>Create a new Collection</H3>
-                        <Text>Please Enter the name of the new Colection</Text>
-
-                        <View style={{marginVertical: 30}}>
-                            <TextInput 
-                                placeholder="Name" 
-                                style={{borderBottomWidth: 1, borderColor: '#ddd', padding: 1}}
-                                value={this.state.newCollectionName}
-                                onChangeText={(text) => {this.setState({newCollectionName: text})}}/>
-                        </View>
-
-                        <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
-                            <TouchableHighlight
-                                style={{padding: 5}}
-                                onPress={this.hideDialog}>
-                                <Text>CANCEL</Text>
-                            </TouchableHighlight>
-                            <TouchableHighlight
-                                style={{padding: 5}}
-                                onPress={() => {this.addItem()}}>
-                                <Text style={{color: COLORS.primary}}>OK</Text>
-                            </TouchableHighlight>
-                        </View>
-                </Popup>
+                <NavigationEvents onWillFocus={this.onWillFocus}/>
 
                 <Popup visible={this.state.loading} style={{marginHorizontal: 100, marginTop: 300}}>
                     <View style={{flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
@@ -136,75 +139,121 @@ export default class HomeComponent extends React.Component<Props, State> {
                     </View>
                 </Popup>
 
-                <NavigationEvents
-                    onWillFocus={this.onWillFocus}></NavigationEvents>
 
-                <Container>
-
-                    {/* Header Bar */}
-                    <Header style={styles.headerLayout}>
-                        {/* Title */}
+                <View style={{marginTop: 0}}>
+    
+                    <View elevation={3} style={styles.headerLayout}>
                         <Body style={styles.headerBodyLayout}>
-                            <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
-                                <IconicToolButton style={{flex: 1}} icon="lock" onPress={() => {this.props.navigation.navigate('Login');}}></IconicToolButton>
+                            <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 18}}>
+                                <Animated.View style={{flex: 1, transform: [{translateX: this.leftOffset}]}}>
+                                    <IconicToolButton style={{flex: 1}} icon="lock" onPress={() => {this.props.navigation.navigate('Login');}}></IconicToolButton>
+                                </Animated.View>
                                 <Title style={{flex: 7, fontSize: 24, color: 'black'}}>Encryptor</Title>
-                                <IconicToolButton style={{flex: 1}} icon="chevron-down" onPress={() => {}}></IconicToolButton>
+                                <Animated.View style={{flex: 1, transform: [{translateX: this.rightOffset}]}}>
+                                    <IconicToolButton style={{flex: 1}} icon="chevron-down" onPress={() => {}}></IconicToolButton>
+                                </Animated.View>
                             </View>
                         </Body>
-                    </Header>
-                    <StatusBar animated={true} backgroundColor={COLORS.statusBar} barStyle="dark-content" />
+                    </View>
 
-                    <Content>
-                        {/* Search Bar */}
-                        <View style={{flexDirection: 'column', height: this.height}}>
-                            <View elevation={2} style={{flex: 1, marginHorizontal: 10, marginTop: 20, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 0, paddingLeft: 10}}>
-                                <Icon style={{flex: 1, color: '#999', marginLeft: 10}} name="search"></Icon>
-                                <TextInput style={{flex: 7, fontSize: 18}} placeholder="Search"/>
-                            </View>
-                            
-                            {/* Collections List */}
-                            <View style={{flex: 10}}>    
-                                <ScrollView style={styles.itemContainerLayout}>
-                                    <Text style={{color: '#999', fontWeight: 'bold', marginBottom: 9}}>YOUR COLLECTIONS</Text>
-                                    
-                                    {messageBox}
-                                    
-                                    {this.state.collections.map(item => 
-                                            <TouchableNativeFeedback key={item.id} onPress={() => {this.openDetailsFor(item)}}>
-                                                <Animated.View style={{
-                                                        ...styles.itemLayout,
-                                                        opacity: (item.id == this.state.selectedItemId) ? 1 : this.state.opacity
-                                                    }}>
-                                                    <Icon type="Feather" name='key' style={{flex: 1, color: COLORS.primary}}/>
-                                                    
-                                                    <Transition shared={String(item.id)}>
-                                                        <CollectionTitle style={{flex: 6}} name={item.name}></CollectionTitle>
-                                                    </Transition>
+                    <StatusBar translucent={true} animated={true} backgroundColor="rgba(255,255, 255,0)" barStyle="dark-content" />
 
-                                                </Animated.View>
-                                            </TouchableNativeFeedback>
-                                    )}
-                                </ScrollView>
+                    <View style={{flexDirection: 'column', backgroundColor: '#fff'}}>
+                        <View elevation={2} style={{
+                                height: 50,
+                                backgroundColor: '#eee', 
+                                marginHorizontal: 10, 
+                                marginTop: 20, 
+                                borderRadius: 50, 
+                                flexDirection: 'row', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                borderWidth: 0, 
+                                paddingLeft: 10}}>
+                            <Icon style={{flex: 1, color: '#666', marginLeft: 10}} name="search"></Icon>
+                            <TextInput style={{flex: 7, fontSize: 18}} placeholder="Search"/>
+                        </View>
+
+                        <View>    
+                            <View style={styles.itemContainerLayout}>
+                                <Text style={{color: '#999', fontWeight: 'bold', marginBottom: 9}}>YOUR COLLECTIONS</Text>
+                                
+                                {messageBox}
+
+                                <ReorderableList
+                                    controller={this}
+                                    ref={(view: ReorderableList) => {this.listController = view}}
+                                    onPressItem={(item: CollectionInfo) => this.openDetailsFor(item)}
+                                    items={this.state.collections}
+                                    renderItem={(item: CollectionInfo) => <></>}
+                                />
                             </View>
                         </View>
-                        
-                    </Content>
+                    </View>
+                </View>
 
-                    <Fab
-                        active={true}
-                        style={{ backgroundColor: COLORS.primary }}
-                        position="bottomRight"
-                        onPress={this.showDialog}>
-                        <Icon name="add"/>
-                    </Fab>
-                </Container>
+                <AnimatedFab
+                    onPress={this.showDialog}
+                    color={COLORS.primary}
+                    style={{
+                        transform: [{translateY: this.fabOffset}]
+                    }}>
+                    <Icon name="plus" type="Feather" style={{color: '#fff'}}/>
+                </AnimatedFab>
+
+                <AnimatedFab
+                    onPress={() => {this.endReorderMode()}}
+                    color={COLORS.success}
+                    style={{
+                        transform: [{translateY: this.checkOffset}]
+                    }}>
+                    <Icon name="check" type="Feather" style={{color: '#fff'}}/>
+                </AnimatedFab>
+
+                {/* Dialog Window */}
+                <Popup visible={this.state.modalVisible}>
+                    <H3>Create a new Collection</H3>
+                    <Text>Please Enter the name of the new Colection</Text>
+
+                    <View style={{marginVertical: 30}}>
+                        <TextInput 
+                            placeholder="Name" 
+                            style={{borderBottomWidth: 1, borderColor: '#ddd', padding: 1}}
+                            value={this.state.newCollectionName}
+                            onChangeText={(text) => {this.setState({newCollectionName: text})}}/>
+                    </View>
+
+                    <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
+                        <TouchableHighlight
+                            activeOpacity={0.5}
+                            underlayColor="#ccc"
+                            style={{padding: 5, borderRadius: 2, marginRight: 10}}
+                            onPress={this.hideDialog}>
+                            <Text>CANCEL</Text>
+                        </TouchableHighlight>
+                        <TouchableHighlight
+                            activeOpacity={0.5}
+                            underlayColor="#ccc"
+                            style={{padding: 5, borderRadius: 2}}
+                            onPress={() => {this.addItem()}}>
+                            <Text style={{color: COLORS.primary}}>OK</Text>
+                        </TouchableHighlight>
+                    </View>
+                </Popup>
             </>
         )
     }
 }
 
 const styles = StyleSheet.create({
+    toolbar: {
+        backgroundColor: '#2196F3',
+        height: 56,
+        alignSelf: 'stretch',
+        textAlign: 'center',
+    }, 
     headerLayout: {
+        height: 80,
         backgroundColor: COLORS.header,
         flexDirection: 'row',
         justifyContent: 'center',
@@ -220,13 +269,80 @@ const styles = StyleSheet.create({
         flexDirection: 'column'
     },
     itemLayout: {
-        height: 80,
-        borderBottomWidth: 1,
-        borderColor: '#dddddd',
-        backgroundColor: '#ffffff',
         flexDirection: 'row',
-        padding: 15,
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        borderBottomWidth: 1, 
+        borderColor: '#dddddd',
+        padding: 18,
+        height: itemHeight
     }
 });
+
+{/*
+    <TouchableNativeFeedback 
+        key={item.id}
+        onPress={() => {this.openDetailsFor(item)}}
+        onLongPress={this.startSelectionAnimation}>
+        <Animated.View style={{
+            transform: [{translateY: 0, scale: this.itemScale}], 
+            borderBottomWidth: 1, 
+            borderColor: '#dddddd', 
+            padding: 18, 
+            backgroundColor: '#fff'}}
+            onStartShouldSetResponder={() => {return true;}}
+            onResponderGrant={this.startSelectionAnimation}
+            onResponderRelease={this.startDeselectionAnimation}>
+            <View style={styles.itemLayout}>
+                <Icon type="Feather" name='key' style={{flex: 1, color: COLORS.primary}}/>
+                
+                <Transition shared={String(item.id)} disappear={hideTransition}>
+                    <CollectionTitle style={{flex: 6}} name={item.name}></CollectionTitle>
+                </Transition>
+            </View>
+        </Animated.View>
+    </TouchableNativeFeedback>
+*/}
+
+{/*
+    {this.state.collections.map(item => 
+        <MoveableListItem
+            onSelect={() => {this.selectItem(item)}}
+            onMove={this.moveSelectedItem}
+            onRelease={this.deselectItem}
+            scale={this.itemScale}
+            offset={item.offset}>
+                <Animated.View 
+                elevation={1}
+                style={{
+                    ...styles.itemLayout,
+                    transform: [{translateY: item.offset}],
+                    backgroundColor: item.color.interpolate({inputRange: [0, 1], outputRange: ['#fff', '#eee']})
+                    }}>
+                    <Icon type="Feather" name='key' style={{flex: 1, color: COLORS.primary}}/>
+                    
+                    <Transition shared={String(item.collection.id)} disappear={hideTransition}>
+                        <CollectionTitle style={{flex: 6}} name={item.collection.name}></CollectionTitle>
+                    </Transition>
+                </Animated.View>
+        </MoveableListItem>
+    )}
+*/}
+
+{/*
+    <MoveableList
+        enabled={this.state.enableSelectionMode}
+        items={this.state.collections}
+
+        onPressItem={(item: CollectionInfo) => this.openDetailsFor(item)}
+        onLongPressItem={this.enableSelectionMode}
+
+        renderItem={(item: any) => <>
+            <Icon type="Feather" name='key' style={{flex: 1, color: COLORS.primary}}/>
+
+            <Transition shared={String(item.id)} disappear={hideTransition}>
+                <CollectionTitle style={{flex: 6}} name={item.name}></CollectionTitle>
+            </Transition>
+        </>}
+    />
+*/}

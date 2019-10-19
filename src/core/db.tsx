@@ -5,6 +5,7 @@ const CollectionSchema = {
     primaryKey: 'id',
     properties: {
       id:  {type: 'int', default: 0},
+      index: 'int',
       name: 'string',
       passwordId: {type: 'int', default: 0},
       keySalt: 'string',
@@ -29,6 +30,7 @@ class PasswordEntry {
 
 class Collection {
     id: number = 0
+    index: number = 0;
     name: string = ''
     passwordId: number = 0
     keySalt: string = '1234567890'
@@ -37,6 +39,15 @@ class Collection {
     constructor(name: string, value: string) {
         this.name = name;
         this.value = value;
+    }
+
+    static copy(collection: Collection): Collection {
+        let newCollection = new Collection(collection.name, collection.value);
+        newCollection.id = collection.id;
+        newCollection.index = collection.index;
+        newCollection.passwordId = collection.passwordId;
+        newCollection.keySalt = collection.keySalt;
+        return collection;
     }
 }
 
@@ -62,7 +73,7 @@ class Database {
     private realm: any = null;
     public async getConnection() {
         if (this.realm === null) { 
-            this.realm = await Realm.open({schema: [CollectionSchema, PasswordsSchema], schemaVersion: 1});
+            this.realm = await Realm.open({schema: [CollectionSchema, PasswordsSchema], schemaVersion: 2});
         }
         return this.realm;
     }

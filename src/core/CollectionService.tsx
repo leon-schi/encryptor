@@ -3,6 +3,16 @@ import { EncryptionService } from './EncryptionService'
 
 // TODO: don't call readCollections everywhere (for performance reasons)
 
+class CollectionInfo {
+    id: number;
+    name: string;
+
+    constructor(id: number, name: string) {
+        this.id = id;
+        this.name = name;
+    }
+}
+
 class CollectionService {
     private static instance: CollectionService;
     public static getInstance() {
@@ -16,21 +26,28 @@ class CollectionService {
         return await Database.getInstance().getConnection()
     }
 
-    private async readCollections(): Promise<void> {
+    public async readCollections(): Promise<void> {
         let realm = await this.getConnection();
-        this.collections = realm.objects('Collection');
+        let collections = realm.objects('Collection').sorted('index');
+
+        this.collectionInfos = [];
+        for (let i = 0; i < collections.length; i++) {
+            this.collectionInfos.push(new CollectionInfo(
+                collections[i].id,
+                collections[i].name
+            ));
+        }
     }
 
-    private collections: Collection[] | null = null
-    public async getCollections(): Promise<Collection[] | null> {
-        if (this.collections === null) 
-            await this.readCollections();
-        return this.collections;
+    private collectionInfos: CollectionInfo[] | null = null
+    public getCollections(): CollectionInfo[] | null {
+        return this.collectionInfos;
     }
 
     public async getCollectionById(id: number): Promise<Collection> {
         let realm = await this.getConnection();
-        return realm.objects('Collection').filtered('id = ' + id)[0];
+        let collection = realm.objects('Collection').filtered('id = ' + id)[0];
+        return Collection.copy(collection);
     }
 
     public async insertCollection(name: string, value: string) {
@@ -38,13 +55,15 @@ class CollectionService {
         let realm = await this.getConnection();
         
         let id = 0;
+        let index = 0;
         try { 
             id = realm.objects('Collection').max('id') + 1
+            index = realm.objects('Collection').max('index') + 1
             if (Number.isNaN(id)) id = 0;
+            if (Number.isNaN(index)) index = 0;
         } catch (e) {}
         collection.id = id;
-
-        console.log(id);
+        collection.index = index;
 
         await realm.write(() => {realm.create('Collection', collection)});
         await this.readCollections();
@@ -72,6 +91,17 @@ class CollectionService {
         await realm.write(() => {realm.delete(collection)});
         await this.readCollections();
     }
+
+    public async reorderCollections(collections: CollectionInfo[]) {
+        let realm = await this.getConnection();
+        await realm.write(() => {
+            for (let i = 0; i < collections.length; i++) {
+                let collection = realm.objects('Collection').filtered('id = ' + collections[i].id)[0];
+                collection.index = i;
+            }
+        });
+        await this.readCollections();
+    }
 }
 
-export {CollectionService};
+export { CollectionService, CollectionInfo };

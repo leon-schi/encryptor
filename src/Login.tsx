@@ -32,7 +32,7 @@ export default class Login extends React.Component<Props, State> {
     componentDidMount() {
         BackHandler.addEventListener('hardwareBackPress', () => {return true});
         this.loginService.setMasterPassword('12345');
-        this.bio();
+        //this.bio();
     }
 
     async bio() {
@@ -85,7 +85,7 @@ export default class Login extends React.Component<Props, State> {
         return (
             <Transition appear={flowTransition}>
                 <View style={styles.contentLayout}>
-                    <StatusBar animated={true} backgroundColor={COLORS.primary} barStyle="light-content" />
+                    <StatusBar translucent={true} animated={true} backgroundColor="rgba(255,255, 255,00)" barStyle="light-content" />
 
                     <Icon type="Feather" name='lock' style={{color: "white", fontSize: 60}}/>
                     <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 30, marginVertical: 20}}>Encryptor</Text>
@@ -123,6 +123,6 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: COLORS.primary,
         padding: 30,
-        paddingTop: 60
+        paddingTop: 100
     }
 });
