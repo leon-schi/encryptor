@@ -8,6 +8,7 @@ type Props = {
     color: string,
     icon: string,
     title: string,
+    iconType ?: string 
 }
 
 class OutlineButton extends React.Component<Props> {
@@ -17,6 +18,12 @@ class OutlineButton extends React.Component<Props> {
     }
     
     render() {
+        let type;
+        if (this.props.iconType !== undefined)
+            type = this.props.iconType;
+        else
+            type = 'Feather';
+
         return (
             <TouchableNativeFeedback style={styles.buttonLayoutContainer} onPress={() => {this.onPress()}}>
                 <View style={{
@@ -24,7 +31,7 @@ class OutlineButton extends React.Component<Props> {
                         borderColor: this.props.color
                     }}>
                     <View style={{flex: 2, justifyContent: 'center', flexDirection: 'row'}}>
-                        <Icon type="Feather" name={this.props.icon} style={{color: this.props.color}}></Icon>
+                        <Icon type={type} name={this.props.icon} style={{color: this.props.color}}></Icon>
                     </View>
                     <View style={{flex: 6}}>
                         <Text style={{color: this.props.color, fontWeight: 'bold'}}>{this.props.title}</Text>

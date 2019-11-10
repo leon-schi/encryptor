@@ -1,4 +1,4 @@
-import { Database, Collection, Attribute } from './db'
+import { Database, CollectionEntity, Attribute } from './db'
 import { EncryptionService } from './EncryptionService'
 
 // TODO: don't call readCollections everywhere (for performance reasons)
@@ -10,6 +10,26 @@ class CollectionInfo {
     constructor(id: number, name: string) {
         this.id = id;
         this.name = name;
+    }
+}
+
+class Collection {
+    entity: CollectionEntity = null;
+    id: number = 0;
+    name: string = '';
+    attributes: Attribute[] = [];
+
+    static emptyCollection() {
+        return new Collection(null, []);
+    }
+
+    constructor(collectionEntity: CollectionEntity, attributes: Attribute[]) {
+        this.attributes = attributes;
+        if (collectionEntity !== null) {
+            this.entity = collectionEntity;
+            this.id = collectionEntity.id;
+            this.name = collectionEntity.name;
+        }
     }
 }
 
@@ -39,6 +59,7 @@ class CollectionService {
         }
     }
 
+    private encryptionService: EncryptionService = EncryptionService.getInstance();
     private collectionInfos: CollectionInfo[] | null = null
     public getCollections(): CollectionInfo[] | null {
         return this.collectionInfos;
@@ -46,12 +67,18 @@ class CollectionService {
 
     public async getCollectionById(id: number): Promise<Collection> {
         let realm = await this.getConnection();
-        let collection = realm.objects('Collection').filtered('id = ' + id)[0];
-        return Collection.copy(collection);
+        let collectionEntity: CollectionEntity = realm.objects('Collection').filtered('id = ' + id)[0];
+        let attributes: Attribute[] = await this.encryptionService.decrypt(collectionEntity);
+        let collection: Collection = new Collection(collectionEntity, attributes);
+        return collection;
+    }
+    public async insertNewCollection(name: string) {
+        let collectionEntity;
+        collectionEntity = await this.encryptionService.newCollectionEntity(name);
+        await this.insertCollection(collectionEntity);
     }
 
-    public async insertCollection(name: string, value: string) {
-        let collection = new Collection(name, value);
+    private async insertCollection(collection: CollectionEntity) {
         let realm = await this.getConnection();
         
         let id = 0;
@@ -76,8 +103,11 @@ class CollectionService {
         });
     }
 
-    public async updateCollection(id: number, attrinutes: Attribute[]) {
-        await this.update({id: id, value: EncryptionService.getInstance().encrypt(attrinutes)});
+    public async updateCollection(collection: Collection) {
+        await this.update({
+            id: collection.id, 
+            value: await this.encryptionService.encrypt(collection.attributes, collection.entity)
+        });
         await this.readCollections();
     }
 
@@ -88,7 +118,7 @@ class CollectionService {
 
     public async deleteCollection(collection: Collection) {
         let realm = await this.getConnection();
-        await realm.write(() => {realm.delete(collection)});
+        await realm.write(() => {realm.delete(collection.entity)});
         await this.readCollections();
     }
 
@@ -104,4 +134,4 @@ class CollectionService {
     }
 }
 
-export { CollectionService, CollectionInfo };
+export { CollectionService, CollectionInfo, Collection };

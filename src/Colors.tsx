@@ -1,6 +1,7 @@
 
 const COLORS: any = {
     primary: '#3880ff',
+    secondary: '#8fb7ff',
     danger: '#f04141',
     success: '#10dc60',
     statusBar: '#fff',

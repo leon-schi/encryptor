@@ -194,7 +194,7 @@ class ReorderableList extends React.Component<Props, State> {
                 }}>
                 <ScrollView>
                     {items.map((item: any, index: number) => 
-                        <ReorderableListItem 
+                        <ReorderableListItem
                             key={index}
                             scale={this.itemScale}
                             offset={this.getPropForItem(item).offset}

@@ -4,8 +4,8 @@ import {
     NavigationScreenProp,
     NavigationState,
     NavigationEvents } from 'react-navigation';
-import { StyleSheet, View, BackHandler, TouchableHighlight } from 'react-native';
-import { Container, Content, Text, Icon, ActionSheet, Root, H3 } from 'native-base';
+import { StyleSheet, View, BackHandler, TouchableHighlight, ActivityIndicator } from 'react-native';
+import { Container, Content, Text, Icon, ActionSheet, Root, H3, Col } from 'native-base';
 import { Transition } from 'react-navigation-fluid-transitions'
 import { flowTransition, fadeTransition, noneTransition } from './Transitions'
 
@@ -17,9 +17,9 @@ import { MessageBox } from './components/MessageBox'
 import { AnimatedFab } from './components/AnimatedFab'
 import { Popup } from './components/Dialog'
 
-import { CollectionService } from './core/CollectionService'
-import { EncryptionService } from './core/EncryptionService'
-import { Collection, Attribute } from './core/db'
+import { CollectionService, Collection } from './core/CollectionService'
+import { AuthenticationHelper } from './core/AuthenticationHelper'
+import { Attribute } from './core/db'
 import COLORS from './Colors'
 
 let itemHeight = 55;
@@ -30,7 +30,7 @@ type Props = {
 
 type State = {
     showValues: boolean,
-    attributes: Attribute[],
+    collection: Collection,
     loading: boolean,
     deletionPopupVisible: boolean
 }
@@ -38,19 +38,18 @@ type State = {
 export default class DetailsComponent extends React.Component<Props, State> {    
     state: State = {
         showValues: false,
-        attributes: [],
+        collection: Collection.emptyCollection(),
         loading: true,
         deletionPopupVisible: false
     }
     private collectionService: CollectionService = CollectionService.getInstance();
-    private encryptionService: EncryptionService = EncryptionService.getInstance();
-    private collection: Collection = new Collection('', '[]');
+    private authenticationHelper: AuthenticationHelper = new AuthenticationHelper(this.props.navigation);
 
     constructor(props: Props) {
         super(props);
 
-        this.collection.id = this.props.navigation.getParam('id', null);
-        this.collection.name = this.props.navigation.getParam('name', ''); 
+        this.state.collection.id = this.props.navigation.getParam('id', null);
+        this.state.collection.name = this.props.navigation.getParam('name', ''); 
     }
 
     onWillFocus = () => {
@@ -69,9 +68,12 @@ export default class DetailsComponent extends React.Component<Props, State> {
     }
 
     async load() {
-        this.collection = await this.collectionService.getCollectionById(this.collection.id);
-        let attributes: Attribute[] = this.encryptionService.decrypt(this.collection.value);
-        this.setState({attributes: attributes, loading: false});
+        let action = async () => {
+            let collection: Collection = await this.collectionService.getCollectionById(this.state.collection.id);
+            this.setState({collection: collection, loading: false});
+            this.onWillFocus();
+        }
+        this.authenticationHelper.execute(action, "Authenticate to access collection '" + this.state.collection.name + "'");
     }
 
     quit = async () => {
@@ -79,27 +81,27 @@ export default class DetailsComponent extends React.Component<Props, State> {
     }
 
     async deleteCollectionAndQuit() {
-        await this.collectionService.deleteCollection(this.collection);
+        await this.collectionService.deleteCollection(this.state.collection);
         this.quit();
     }
 
     private async saveAttributes() {
-        await this.collectionService.updateCollection(this.collection.id, this.state.attributes);
+        await this.collectionService.updateCollection(this.state.collection);
         this.forceUpdate();
     }
 
     async setAttribute(name: string, value: string, index: number) {
-        this.state.attributes[index] = new Attribute(name, value);
+        this.state.collection.attributes[index] = new Attribute(name, value);
         await this.saveAttributes();
     }
 
     async addAttribute(name: string, value: string) {
-        this.state.attributes.push(new Attribute(name, value));
+        this.state.collection.attributes.push(new Attribute(name, value));
         await this.saveAttributes();
     }
 
     async deleteAttribute(index: number) {
-        this.state.attributes.splice(index, 1);
+        this.state.collection.attributes.splice(index, 1);
         await this.saveAttributes();
     }
 
@@ -142,16 +144,22 @@ export default class DetailsComponent extends React.Component<Props, State> {
 
     render() {
         let contentSection;
-        if (this.state.attributes.length > 0) {
+        if (this.state.loading) {
+            contentSection = <View style={{padding: 70}}>
+                <ActivityIndicator size="large" color={COLORS.primary}/>
+                <Text style={{textAlign: 'center', color: COLORS.primary, marginTop: 10}}>Decrypting</Text>
+            </View>
+        }
+        else if (this.state.collection.attributes.length > 0) {
             contentSection = 
                 <View>
                     {/* Attributes List */}
                     <View style={{
                             ...styles.listLayout,
-                            height: (this.state.attributes.length) * itemHeight
+                            height: (this.state.collection.attributes.length) * itemHeight
                         }}>
                         
-                        {this.state.attributes.map((attribute, index) => 
+                        {this.state.collection.attributes.map((attribute, index) => 
                             <AttributeItem 
                                 name={attribute.name}
                                 value={this.renderPassword(attribute.value)}
@@ -206,7 +214,7 @@ export default class DetailsComponent extends React.Component<Props, State> {
                             </Transition>
                             {/* Title */}
                             <Transition appear='top'>
-                                <CollectionTitle style={{flex: 6}} name={this.collection.name}></CollectionTitle>
+                                <CollectionTitle style={{flex: 6}} name={this.state.collection.name}></CollectionTitle>
                             </Transition>
                             {/* Settings Button */}
                             <Transition appear='right'>
@@ -230,7 +238,7 @@ export default class DetailsComponent extends React.Component<Props, State> {
 
                 <Popup visible={this.state.deletionPopupVisible}>
                     <H3>Confirm</H3>
-                    <Text>Do you really want to delete the collection '{this.collection.name}'?</Text>
+                    <Text>Do you really want to delete the collection '{this.state.collection.name}'?</Text>
 
                     <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
                         <TouchableHighlight

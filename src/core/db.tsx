@@ -8,7 +8,7 @@ const CollectionSchema = {
       index: 'int',
       name: 'string',
       passwordId: {type: 'int', default: 0},
-      keySalt: 'string',
+      encryptedKey: 'string',
       value: 'string'
     }
   };
@@ -21,6 +21,16 @@ const PasswordsSchema = {
         salt: 'string'
     }
 };
+const TokenSchema = {
+    name: 'Token',
+    primaryKey: 'id',
+    properties: {
+        id:  {type: 'int', default: 0},
+        hash: 'string',
+        passwordProtected: 'string',
+        biometricallyProtected: 'string'
+    }
+};
 
 class PasswordEntry {
     id: number = 0;
@@ -28,26 +38,29 @@ class PasswordEntry {
     salt: string = '1234567';
 }
 
-class Collection {
+class CollectionEntity {
     id: number = 0
     index: number = 0;
     name: string = ''
     passwordId: number = 0
-    keySalt: string = '1234567890'
-    value: string = ''
+    encryptedKey: string = '';
+    value: string = '';
 
-    constructor(name: string, value: string) {
+    constructor(name: string) {
         this.name = name;
-        this.value = value;
     }
+}
 
-    static copy(collection: Collection): Collection {
-        let newCollection = new Collection(collection.name, collection.value);
-        newCollection.id = collection.id;
-        newCollection.index = collection.index;
-        newCollection.passwordId = collection.passwordId;
-        newCollection.keySalt = collection.keySalt;
-        return collection;
+class Token {
+    id: number = 0;
+    hash: string;
+    passwordProtected: string;
+    biometricallyProtected: string;
+
+    constructor(hash: string, passwordProtected: string, biometricallyProtected: string) {
+        this.hash = hash;
+        this.passwordProtected = passwordProtected;
+        this.biometricallyProtected = biometricallyProtected;
     }
 }
 
@@ -73,10 +86,14 @@ class Database {
     private realm: any = null;
     public async getConnection() {
         if (this.realm === null) { 
-            this.realm = await Realm.open({schema: [CollectionSchema, PasswordsSchema], schemaVersion: 2});
+            this.realm = await Realm.open({schema: [CollectionSchema, PasswordsSchema, TokenSchema], schemaVersion: 7, migration: (oldRealm: any, newRealm: any) => {
+                let tokens = newRealm.objects('Token');
+                for (let token of tokens)
+                    newRealm.delete(token);
+            }});
         }
         return this.realm;
     }
 }
 
-export { PasswordEntry, Collection, Attribute, Database };
+export { Token, PasswordEntry, CollectionEntity, Attribute, Database };

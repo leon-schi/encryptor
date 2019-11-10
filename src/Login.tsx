@@ -8,43 +8,68 @@ import { Text, Icon } from 'native-base';
 import { OutlineButton } from './components/OutlineButton'
 import { flowTransition } from './Transitions'
 import { Transition } from 'react-navigation-fluid-transitions'
-import { LoginService, LoginFailedException } from './core/LoginService'
+import { LoginService, LoginFailedException, BiometryType } from './core/LoginService'
 
 import COLORS from './Colors'
-import Biometrics from 'react-native-biometrics'
 
 type Props = {
-    navigation: NavigationScreenProp<NavigationState, NavigationParams>
+    navigation: NavigationScreenProp<NavigationState, NavigationParams>,
 }
 
 type State = {
     password: string,
-    errorMessage: string
+    errorMessage: string,
+    biometryType: BiometryType
 }
 
 export default class Login extends React.Component<Props, State> {
     state = {
         password: '',
-        errorMessage: ''
+        errorMessage: '',
+        biometryType: BiometryType.Pending
     }
     private loginService: LoginService = LoginService.getInstance();
+    private onLoginSuccess: Function = () => {};
+    private mode: 'any' | 'password' | 'biometric' = 'any';
+    private message: string = '';
+
+    constructor(props: Props) {
+        super(props);
+        this.onLoginSuccess = this.props.navigation.getParam('onLoginSuccess', () => {});
+        this.mode = this.props.navigation.getParam('mode', 'any');
+        this.message = this.props.navigation.getParam('message', '');
+
+        this.state.biometryType = this.loginService.getAvailableSensor();
+        this.loginService.getAvailableBiometry().then((biometryType: BiometryType) => {
+            if (this.state.biometryType !== biometryType)
+                this.setState({biometryType: biometryType});
+        })
+    }
 
     componentDidMount() {
         BackHandler.addEventListener('hardwareBackPress', () => {return true});
         this.loginService.setMasterPassword('12345');
-        //this.bio();
+        if (this.mode != 'password')
+            this.biometryCheck();
     }
 
-    async bio() {
-        let pulicKey = await Biometrics.createKeys('Confirm Fingerprint');
-        this.loginService.setPublicKey(pulicKey);
+    async biometryCheck() {
+        let enabled = await this.loginService.isBiometicAuthenticaionSet()
 
-        let payload = 'Andreas Polze';
-        let token = await Biometrics.createSignature('Sign in', payload);
-        await this.loginService.LoginWithToken(token, payload);
+        if (enabled) {
+            this.promptBiometryPopup();
+        }
+    }
+
+    promptBiometryPopup = async () => {
+        try {
+            await this.loginService.biometricAuthentication();
+            this.loginSuccess();
+        } catch (e) {}
     }
 
     loginSuccess() {
+        this.onLoginSuccess();
         this.props.navigation.goBack();
     }
 
@@ -67,6 +92,49 @@ export default class Login extends React.Component<Props, State> {
         }
     }
 
+    biometryButton() {
+        if (this.mode == 'password')
+            return <></>;
+        else if (this.state.biometryType == BiometryType.Fingerprint)
+            return <OutlineButton 
+                title="USE FINGERPRINT" 
+                icon="fingerprint"
+                iconType="Entypo" 
+                color="white"
+                onPress={this.promptBiometryPopup}></OutlineButton>
+        else if (this.state.biometryType == BiometryType.FaceID)
+            return <OutlineButton 
+                title="USE FACE ID" 
+                icon="camera"
+                iconType="Entypo" 
+                color="white"
+                onPress={this.promptBiometryPopup}></OutlineButton>
+        return <></>;
+    }
+
+    inputField() {
+        if (this.mode != 'biometric') {
+            return <>
+                <View style={{flexDirection: 'row', marginVertical: 20}}>
+                    <TextInput 
+                        secureTextEntry={true} 
+                        placeholderTextColor={'#ccc'} 
+                        autoCompleteType="password" 
+                        style={{flex: 1, fontSize: 18, borderColor: 'white', color: 'white', borderBottomWidth: 1, paddingVertical: 5}} 
+                        placeholder="Password"
+                        value={this.state.password}
+                        onChangeText={(text) => {this.setState({password: text})}}/>
+                </View>
+                <OutlineButton 
+                        title="CONFIRM" 
+                        icon="check" 
+                        color="white"
+                        onPress={this.performPasswordLogin}></OutlineButton>
+            </>
+        }
+        return <></>
+    }
+
     render() {
         let badge = <></>;
         if (this.state.errorMessage !== '')
@@ -82,6 +150,16 @@ export default class Login extends React.Component<Props, State> {
                     <Text style={{color: 'white'}}>{this.state.errorMessage}</Text>
                 </View>
 
+        let modeInfo = '';
+        if (this.mode == 'password')
+            modeInfo = 'Password required'
+        else if (this.mode == 'biometric') {
+            if (this.state.biometryType == BiometryType.Fingerprint)
+                modeInfo = 'Fingerprint required'
+            else
+                modeInfo = 'Face-ID required'
+        }
+
         return (
             <Transition appear={flowTransition}>
                 <View style={styles.contentLayout}>
@@ -90,26 +168,16 @@ export default class Login extends React.Component<Props, State> {
                     <Icon type="Feather" name='lock' style={{color: "white", fontSize: 60}}/>
                     <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 30, marginVertical: 20}}>Encryptor</Text>
 
+                    <Text style={{textAlign: 'center', color: 'white', marginTop: 10}}>{this.message}</Text>
+                    <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', marginVertical: 5}}>{modeInfo}</Text>
+
                     <View style={{height: 40}}>
                         {badge}
                     </View>
 
-                    <View style={{flexDirection: 'row', marginVertical: 20}}>
-                        <TextInput 
-                            secureTextEntry={true} 
-                            placeholderTextColor={'#ccc'} 
-                            autoCompleteType="password" 
-                            style={{flex: 1, fontSize: 18, borderColor: 'white', color: 'white', borderBottomWidth: 1, paddingVertical: 5}} 
-                            placeholder="Password"
-                            value={this.state.password}
-                            onChangeText={(text) => {this.setState({password: text})}}/>
-                    </View>
+                    {this.inputField()}
 
-                    <OutlineButton 
-                            title="CONFIRM" 
-                            icon="check" 
-                            color="white"
-                            onPress={this.performPasswordLogin}></OutlineButton>
+                    {this.biometryButton()}
                 </View>
             </Transition>
         );

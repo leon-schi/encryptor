@@ -9,6 +9,8 @@
     "test": "jest"
   },
   "dependencies": {
+    "@react-native-community/async-storage": "^1.6.2",
+    "aes-js": "^3.1.2",
     "native-base": "^2.13.8",
     "react": "16.8.1",
     "react-native": "0.61.2",

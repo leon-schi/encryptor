@@ -4,7 +4,7 @@ import {
     NavigationScreenProp,
     NavigationState,
     NavigationEvents } from 'react-navigation';
-import { StyleSheet, Dimensions, View, TouchableHighlight, BackHandler } from 'react-native';
+import { StyleSheet, Dimensions, View, BackHandler } from 'react-native';
 import { Text, Container, H1, Form, Item, Label, Input, Content, Icon } from 'native-base';
 import { Transition } from 'react-navigation-fluid-transitions'
 

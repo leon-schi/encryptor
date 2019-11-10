@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Animated, Dimensions, PanResponder, TouchableHighlight } from 'react-native';
+import { KeyboardAvoidingView, Animated, Dimensions, Modal, View } from 'react-native';
 import { transform } from '@babel/core';
 
 type Props = {
@@ -60,7 +60,52 @@ class Popup extends React.Component<Props, State> {
     }
 
     render() {
-        let modal;
+        return (
+            <>
+                { this.state.visible ? <Animated.View
+                        elevation={8} 
+                        style={{
+                            position: 'absolute',
+                            left: 0,
+                            top: 0,
+                            width: this.width,
+                            height: this.height,
+                            backgroundColor: '#000',
+                            opacity: this.opacity
+                        }}/>: <></> }
+                <KeyboardAvoidingView enabled behavior="padding">
+                <Modal
+                    animationType="none"
+                    transparent={true}
+                    visible={this.state.visible}>
+                            <View style={{flexDirection: 'column', flex: 1}}>
+                                <View style={{flex: 1}}/>
+                                <Animated.View
+                                    elevation={9}
+                                    pointerEvents='auto'
+                                    style={{
+                                        marginHorizontal: 50,
+                                        backgroundColor: '#fff',
+                                        borderRadius: 7,
+                                        padding: 20,
+                                        opacity: this.modalOpacity,
+                                        transform: [{scale: this.modalScale}]
+                                    }}>
+                                    {this.props.children}
+                                </Animated.View>
+                                <View style={{flex: 2}}/>
+                            </View>
+                </Modal>
+                </KeyboardAvoidingView>
+            </>
+        );
+    }
+}
+
+export { Popup };
+
+/*
+let modal;
         if (this.state.visible) {
             modal = <>
                 <Animated.View
@@ -106,28 +151,4 @@ class Popup extends React.Component<Props, State> {
             {modal}
             </>
         );
-    }
-}
-
-export { Popup };
-
-{/*
-<Modal
-    animationType="fade"
-    transparent={true}
-    visible={this.props.visible}
-    onRequestClose={() => {}}>
-        <View style={{backgroundColor: 'black', opacity: 0.5, position: 'absolute', width: this.width, height: this.height, transform: [{translateY: -18}]}}></View>
-        <Animated.View style={{
-            marginTop: 100, 
-            backgroundColor: 'white', 
-            borderRadius: 10,
-            padding: 20,
-            marginHorizontal: 40, 
-            flexDirection: 'column',
-            transform: [{scale: this.modalScale}],
-            ...this.props.style}}>
-                {this.props.children}
-        </Animated.View>
-</Modal>
-*/}
+*/

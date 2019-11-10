@@ -1,16 +1,34 @@
-import { AsyncStorage } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
+import Biometrics from 'react-native-biometrics'
+
 import { Database, PasswordEntry } from './db'
-import { RSA } from 'react-native-rsa-native';
 
 const sha256 = require('react-native-sha256')
+const masterPasswordId = 0;
+const salt = '38askjdbc87473h';
 
-class NotAuthenticatedException extends Error {}
+class NotAuthenticatedException extends Error {
+    requiredType: 'biometric' | 'password' | 'any';
+
+    constructor(message: string, type: 'biometric' | 'password' | 'any'='any') {
+        super(message);
+        this.requiredType = type;
+    }
+}
 class LoginFailedException extends Error {}
 
+enum BiometryType {
+    Pending, 
+    None,
+    Fingerprint,
+    FaceID
+}
+
 class LoginService {
-    private passwords: any = {};
-    private token: string;
+    private biometricToken: string;
+    private masterPasswordHash: string;
     
+    private static biometryType: BiometryType = null;
     private static instance: LoginService;
     public static getInstance() {
         if (this.instance == null) {
@@ -18,6 +36,28 @@ class LoginService {
         }
         return this.instance;
     }
+
+    constructor() {
+        this.getAvailableSensor();
+        this.createKeys();
+    }
+
+    public getMasterPasswordHash(): string {
+        if (this.masterPasswordHash !== undefined)
+            return this.masterPasswordHash;
+        throw new NotAuthenticatedException('No master password provided', 'password');
+    }
+
+    public getBiometricToken(): string {
+        if (this.biometricToken !== undefined)
+            return this.biometricToken;
+        throw new NotAuthenticatedException('Biometric authentication required', 'biometric');
+    }
+
+    public isUserBiometricallyLoggedIn() {
+        return this.biometricToken != null;
+    }
+
     private async getConnection(): Promise<any> {
         return await Database.getInstance().getConnection()
     }
@@ -25,22 +65,6 @@ class LoginService {
     private async getPasswordEntryForId(id: number): Promise<PasswordEntry> {
         let realm = await this.getConnection();
         return realm.objects('Password').filtered('id = ' + id)[0];
-    }
-
-    public async decryptKeyWithPassword(passwordId: number, keySalt: string, key: string): Promise<string> {
-        return '9';
-    }
-
-    public async encryptKeyWithPassword(passwordId: number, keySalt: string, key: string): Promise<string> {
-        return '9';
-    }
-
-    public async decryptKeyBiometric(key: string): Promise<string> {
-        return '9';
-    }
-
-    public async encryptKeyBiometric(key: string): Promise<string> {
-        return '9';
     }
 
     private async verifyPassword(passwordEntry: PasswordEntry, password: string) {
@@ -51,7 +75,7 @@ class LoginService {
 
     public async setMasterPassword(password: string) {
         let passwordEntry = new PasswordEntry();
-        passwordEntry.id = 0;
+        passwordEntry.id = masterPasswordId;
         passwordEntry.hash = await sha256.sha256(password + passwordEntry.salt);
 
         let realm = await this.getConnection();
@@ -66,42 +90,28 @@ class LoginService {
     }
 
     public async masterPasswordLogin(password: string) {
-        let passwordEntry: PasswordEntry = await this.getPasswordEntryForId(0);
+        let passwordEntry: PasswordEntry = await this.getPasswordEntryForId(masterPasswordId);
         await this.verifyPassword(passwordEntry, password);
-        this.passwords[0] = password;
-        console.log(password);
+        this.masterPasswordHash = await sha256.sha256(password + salt);
     }
 
     private async verifyToken(token: string, payload: string) {
-        await RSA.generateKeys(2048);
-        console.log(token);
-        let publicKey: string = await this.getPublicKey();
-        console.log(publicKey);
-        let decrypted = await RSA.decrypt(token, publicKey);
-        console.log(decrypted); 
-        if (decrypted != payload)
-            throw new LoginFailedException('Failed to verify token');
+        
     }
 
-    public async LoginWithToken(token: string, payload: string) {
-        let publicKey: string = await this.getPublicKey();
-        console.log('pubkey:', publicKey);
-        RSA.generateKeys(2048) // set key size
-        .then(keys => {
-            console.log('4096 private:', keys.private); // the private key
-            console.log('type:', typeof keys.private);
-            console.log('4096 public:', keys.public); // the public key
-            RSA.encrypt("Andreas Polze", keys.public)
-            .then(encodedMessage => {
-                console.log(`the encoded message is ${encodedMessage}`);
-                RSA.decrypt(encodedMessage, keys.private)
-                .then(decryptedMessage => {
-                    console.log(`The original message was ${decryptedMessage}`);
-                });
-            });
-        });
-        //await this.verifyToken(token, payload);
+    public async loginWithToken(token: string, payload: string) {
+        await this.verifyToken(token, payload);
+        // we need to hash the token in order to ensure a suitable and constant length
+        this.biometricToken = await sha256.sha256(token);
     }
+    
+    public async biometricAuthentication() {
+        this.createKeys();
+        let payload = 'this is a funny payload that will be encrypted with the private key if the user authenticates';
+        let token = await Biometrics.createSignature('Sign in', payload);
+        await this.loginWithToken(token, payload);
+    }
+        
 
     public async setPublicKey(publicKey: string) {
         await AsyncStorage.setItem('publicKey', publicKey);
@@ -111,16 +121,55 @@ class LoginService {
         return await AsyncStorage.getItem('publicKey');
     }
 
-    public async isBiometricAuthenticationEnabled(): Promise<boolean> {
+    public async createKeys() {
+        let pubkey: string = await this.getPublicKey();
+        if (pubkey == null) {
+            pubkey = await Biometrics.createKeys();
+            this.setPublicKey(pubkey);
+        }
+    }
+
+    public async setBiometicAuthentication(enabled: boolean) {
         try {
-            const value = await AsyncStorage.getItem('biometricAuthenticationEnabled');
-            if (value !== null)
+            await AsyncStorage.setItem('biometryEnabled', String(enabled))
+        } catch (e) {
+            console.log('error saving biometry authentication to ' + enabled);
+        }
+    }
+    
+    public async isBiometicAuthenticaionSet(): Promise<boolean> {
+        let biometryType: BiometryType = await this.getAvailableBiometry();
+        if (biometryType == BiometryType.None) return false;
+
+        try {
+            const value = await AsyncStorage.getItem('biometryEnabled');
+            if (value !== null) {
                 return value == 'true';
-        } catch (error) {
+            }
+        } catch(e) {
             return false;
         }
-        return false;
+    }
+
+    public async getAvailableBiometry() {
+        let sensor = await Biometrics.isSensorAvailable();
+        if (sensor == Biometrics.FaceID)
+            return BiometryType.FaceID;
+        else if (sensor == Biometrics.TouchID)
+            return BiometryType.Fingerprint;
+        else
+            return BiometryType.None;
+    }
+
+    public getAvailableSensor(): BiometryType {
+        if (LoginService.biometryType === null) {
+            LoginService.biometryType = BiometryType.Pending;
+            this.getAvailableBiometry().then((biometryType: BiometryType) => {
+                LoginService.biometryType = biometryType;
+            });
+        }
+        return LoginService.biometryType;
     }
 }
 
-export { LoginService, LoginFailedException };
+export { LoginService, LoginFailedException, NotAuthenticatedException, BiometryType};

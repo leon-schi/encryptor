@@ -106,8 +106,7 @@ class ReorderableListItem extends React.Component<Props> {
                     transform: [{scale: this.props.scale}]
                 }}
                 {...this.panResponder.panHandlers}>
-                    <Animated.View 
-                        elevation={2}
+                    <Animated.View
                         style={{
                             ...styles.itemLayout,
                             height: this.props.height,
@@ -125,10 +124,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        borderBottomWidth: 1, 
-        borderColor: '#dddddd',
+        borderBottomWidth: 1,
+        borderColor: '#ccc',
         backgroundColor: '#fff',
-        padding: 18
+        padding: 18,
     }
 });
 
