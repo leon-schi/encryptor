@@ -9,6 +9,7 @@ import { OutlineButton } from './components/OutlineButton'
 import { flowTransition } from './Transitions'
 import { Transition } from 'react-navigation-fluid-transitions'
 import { LoginService, LoginFailedException, BiometryType } from './core/LoginService'
+import { EncryptionService } from './core/EncryptionService'
 
 import COLORS from './Colors'
 
@@ -29,6 +30,7 @@ export default class Login extends React.Component<Props, State> {
         biometryType: BiometryType.Pending
     }
     private loginService: LoginService = LoginService.getInstance();
+    private encryptionService: EncryptionService = EncryptionService.getInstance();
     private onLoginSuccess: Function = () => {};
     private mode: 'any' | 'password' | 'biometric' = 'any';
     private message: string = '';
@@ -48,7 +50,6 @@ export default class Login extends React.Component<Props, State> {
 
     componentDidMount() {
         BackHandler.addEventListener('hardwareBackPress', () => {return true});
-        this.loginService.setMasterPassword('12345');
         if (this.mode != 'password')
             this.biometryCheck();
     }
@@ -84,6 +85,7 @@ export default class Login extends React.Component<Props, State> {
         this.setState({errorMessage: ''});
         try {
             await this.loginService.masterPasswordLogin(this.state.password);
+            console.log(this.loginService.getMasterPasswordHash())
             this.loginSuccess();
         } catch (e) {
             if (e instanceof LoginFailedException)
@@ -93,23 +95,25 @@ export default class Login extends React.Component<Props, State> {
     }
 
     biometryButton() {
-        if (this.mode == 'password')
+        if (this.encryptionService.isBiometryEnabled()) {
+            if (this.mode == 'password')
+                return <></>;
+            else if (this.state.biometryType == BiometryType.Fingerprint)
+                return <OutlineButton 
+                    title="USE FINGERPRINT" 
+                    icon="fingerprint"
+                    iconType="Entypo" 
+                    color="white"
+                    onPress={this.promptBiometryPopup}></OutlineButton>
+            else if (this.state.biometryType == BiometryType.FaceID)
+                return <OutlineButton 
+                    title="USE FACE ID" 
+                    icon="camera"
+                    iconType="Entypo" 
+                    color="white"
+                    onPress={this.promptBiometryPopup}></OutlineButton>
             return <></>;
-        else if (this.state.biometryType == BiometryType.Fingerprint)
-            return <OutlineButton 
-                title="USE FINGERPRINT" 
-                icon="fingerprint"
-                iconType="Entypo" 
-                color="white"
-                onPress={this.promptBiometryPopup}></OutlineButton>
-        else if (this.state.biometryType == BiometryType.FaceID)
-            return <OutlineButton 
-                title="USE FACE ID" 
-                icon="camera"
-                iconType="Entypo" 
-                color="white"
-                onPress={this.promptBiometryPopup}></OutlineButton>
-        return <></>;
+        }
     }
 
     inputField() {

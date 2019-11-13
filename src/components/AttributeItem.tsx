@@ -35,10 +35,10 @@ class AttributeItem extends React.Component<Props> {
                     <TouchableNativeFeedback underlayColor={COLORS.highlight} onPress={this.props.onPress}>
                         <View style={styles.listItemAttributeLayout}>
                             <View style={{flex: 1, paddingHorizontal: 5}}>
-                                <Text style={styles.listTitleLayout}>{this.props.name}</Text>
+                                <Text numberOfLines={1} style={styles.listTitleLayout}>{this.props.name}</Text>
                             </View>
                             <View style={{flex: 1}}>
-                                <Text>{this.props.value}</Text>
+                                <Text numberOfLines={1}>{this.props.value}</Text>
                             </View>    
                         </View>
                     </TouchableNativeFeedback>
@@ -46,7 +46,7 @@ class AttributeItem extends React.Component<Props> {
                 <View style={{flex: 1}}>
                     <TouchableNativeFeedback underlayColor={COLORS.highlight} onPress={this.props.onCopy}>
                         <View style={styles.listItemCopyButtonLayout}>
-                            <Icon type="Feather" name="copy" style={{color: COLORS.highlight}}></Icon>
+                            <Icon type="Feather" name="copy" style={{color: COLORS.dark}}></Icon>
                         </View>
                     </TouchableNativeFeedback>
                 </View>

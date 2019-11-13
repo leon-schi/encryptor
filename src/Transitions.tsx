@@ -15,7 +15,7 @@ const fadeTransition = (transitionInfo: any) => {
     const { progress, start, end } = transitionInfo;
     const opacity = progress.interpolate({
         inputRange: [start, end],
-        outputRange: [0, 1],
+        outputRange: [1, 0],
       });
     return { opacity: opacity };
 }

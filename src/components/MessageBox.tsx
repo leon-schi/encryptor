@@ -6,14 +6,20 @@ import COLORS from '../Colors';
 type Props = {
     title: string,
     message: string,
+    elevation?: number,
     style?: any
 }
 
 class MessageBox extends React.Component<Props> {
+    elevation() {
+        if (this.props.elevation == undefined)
+            return 0;
+        return this.props.elevation;
+    }
 
     render() {
         return (
-            <View style={{
+            <View elevation={this.elevation()} style={{
                 alignItems: 'center',
                 backgroundColor: '#eeeeee',
                 padding: 20,

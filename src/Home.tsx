@@ -11,7 +11,6 @@ import {
     H3,
     Icon,
     Text } from 'native-base';
-import { SettingsComponent } from './components/SettingsComponent'
 import { IconicToolButton } from './components/IconicToolButton'
 import { Popup } from './components/Dialog'
 import { MessageBox } from './components/MessageBox'
@@ -24,12 +23,21 @@ import { AuthenticationHelper } from './core/AuthenticationHelper'
 
 import COLORS from './Colors';
 
+/*
+TODOS
+- Logout time
+- Reencrypt
+- Introduction
+- Dark Mode
+*/
+
 const itemHeight = 85;
 type State = {
     modalVisible: boolean,
     settingsVisible: boolean,
     newCollectionName: string,
     collections: CollectionInfo[],
+    searchText: string,
     loading: boolean,
     enableSelectionMode: boolean
 }
@@ -46,6 +54,7 @@ export default class HomeComponent extends React.Component<Props, State> {
         settingsVisible: false,
         newCollectionName: '',
         collections: [],
+        searchText: '',
         loading: true,
         enableSelectionMode: false,
     }
@@ -65,10 +74,13 @@ export default class HomeComponent extends React.Component<Props, State> {
     }
 
     componentDidMount() {
-        this.refreshCollections(); 
+        this.refreshCollections();
     }
 
     onWillFocus = () => {
+        this.loginService.enforceTimeout();
+        if (!this.loginService.isUserLoggedIn())
+            this.logout();
         this.setState({collections: this.collectionService.getCollections()});
     }
 
@@ -78,6 +90,16 @@ export default class HomeComponent extends React.Component<Props, State> {
             loading: false,
             collections: this.collectionService.getCollections()
         })
+    }
+
+    getFilteredCollections(): CollectionInfo[] {
+        let filteredCollections: CollectionInfo[] = [];
+        for (let collection of this.state.collections) {
+            if (collection.name.includes(this.state.searchText))
+                filteredCollections.push(collection);
+        }
+
+        return filteredCollections;
     }
 
     openDetailsFor(collection: CollectionInfo) {
@@ -95,6 +117,11 @@ export default class HomeComponent extends React.Component<Props, State> {
         };
         this.authenticationHelper.execute(action, "Authentication required to add Collection '" + this.state.newCollectionName + "'");
         this.hideDialog();
+    }
+
+    logout = () => {
+        this.loginService.logout();
+        this.props.navigation.navigate('Login');
     }
 
     showDialog = () => {
@@ -143,6 +170,8 @@ export default class HomeComponent extends React.Component<Props, State> {
                 title="Nothing Here Yet!"
                 message="You can add Attributes by clicking on the button on the bottom-right."/>
 
+        let collections: CollectionInfo[] = this.getFilteredCollections();
+
         return (
             <>
                 <NavigationEvents onWillFocus={this.onWillFocus}/>
@@ -161,11 +190,15 @@ export default class HomeComponent extends React.Component<Props, State> {
                         <Body style={styles.headerBodyLayout}>
                             <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 18}}>
                                 <Animated.View style={{flex: 1, transform: [{translateX: this.leftOffset}]}}>
-                                    <IconicToolButton style={{flex: 1}} icon="lock" onPress={() => {this.props.navigation.navigate('Login');}}></IconicToolButton>
+                                    <IconicToolButton 
+                                        style={{flex: 1}} icon="lock"
+                                        onPress={this.logout}></IconicToolButton>
                                 </Animated.View>
                                 <Title style={{flex: 7, fontSize: 24, color: 'black'}}>Encryptor</Title>
                                 <Animated.View style={{flex: 1, transform: [{translateX: this.rightOffset}]}}>
-                                    <IconicToolButton style={{flex: 1}} icon="chevron-down" onPress={() => {this.setState({settingsVisible: true})}}></IconicToolButton>
+                                    <IconicToolButton 
+                                        style={{flex: 1}} icon="chevron-down"
+                                        onPress={() => {this.props.navigation.navigate('Settings');}}></IconicToolButton>
                                 </Animated.View>
                             </View>
                         </Body>
@@ -186,7 +219,13 @@ export default class HomeComponent extends React.Component<Props, State> {
                                 borderWidth: 0, 
                                 paddingLeft: 10}}>
                             <Icon style={{flex: 1, color: '#666', marginLeft: 10}} name="search"></Icon>
-                            <TextInput style={{flex: 7, fontSize: 18}} placeholder="Search"/>
+                            <TextInput 
+                                style={{flex: 7, fontSize: 18}} 
+                                placeholder="Search" 
+                                value={this.state.searchText}
+                                onChangeText={(text) => {
+                                    this.setState({searchText: text});
+                                }}/>
                         </View>
 
                         <View>    
@@ -199,7 +238,7 @@ export default class HomeComponent extends React.Component<Props, State> {
                                     controller={this}
                                     ref={(view: ReorderableList) => {this.listController = view}}
                                     onPressItem={(item: CollectionInfo) => this.openDetailsFor(item)}
-                                    items={this.state.collections}
+                                    items={collections} 
                                     renderItem={(item: CollectionInfo) => <></>}
                                 />
                             </View>
@@ -255,9 +294,6 @@ export default class HomeComponent extends React.Component<Props, State> {
                         </TouchableHighlight>
                     </View>
                 </Popup>
-
-                {/* Settings Window */}
-                <SettingsComponent authenticationHelper={this.authenticationHelper} visible={this.state.settingsVisible} onDismiss={this.hideDialog}></SettingsComponent>
             </>
         )
     }

@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-community/async-storage';
 import { Attribute, CollectionEntity, Token, Database } from './db'
 import { LoginService, NotAuthenticatedException } from './LoginService';
 import { generateRandomHex } from './Keygen'
@@ -33,41 +32,62 @@ class EncryptionService {
     }
 
     private loginService: LoginService = LoginService.getInstance();
+    private biometryEnabled: boolean = false;
     private masterToken: string = null;
+    constructor() {
+        this.isMasterTokenWithBiometrySet().then((result: boolean) => {
+            this.biometryEnabled = result;
+        })
+    }
+
     private async getConnection(): Promise<any> {
         return await Database.getInstance().getConnection()
     }
 
-    public async isMasterTokenSet() {
+    public logout() {
+        this.masterToken = null;
+    }
+
+    private async getTokenFromDatabase(): Promise<Token> {
         let realm = await this.getConnection();
         let tokens = realm.objects('Token').filtered('id = 0');
-        return tokens.length > 0;   
+        if (tokens.length > 0)
+            return tokens[0];
+        return null;
+    }
+
+    public async isMasterTokenSet() {
+        let token = await this.getTokenFromDatabase();
+        return token != null;   
     }
 
     public async isMasterTokenWithBiometrySet() {
-        let realm = await this.getConnection();
-        let tokens = realm.objects('Token').filtered('id = 0');
-        if (tokens.length > 0) {
-            return tokens[0].biometricallyProtected != '';
+        let token = await this.getTokenFromDatabase();
+        if (token != null) {
+            return token.biometricallyProtected != '';
         }
         return false;
     }
 
+    public isBiometryEnabled(): boolean {
+        return this.biometryEnabled;
+    }
+
     private async createMasterToken() {
         // generate master token, encrypt it and store it; the user needs to be password authenticated for this
-        let realm = await this.getConnection();
-        let tokens = realm.objects('Token').filtered('id = 0');
-        if (tokens.length == 0) { 
-            let token = generateRandomHex(keyLength);
+        let token = await this.getTokenFromDatabase();
+        if (token == null) { 
+            let tokenValue = generateRandomHex(keyLength);
             let masterPasswordHash = this.loginService.getMasterPasswordHash();
             let masterToken: Token = new Token(
-                await sha256.sha256(token),
-                encryptValue(token, masterPasswordHash),
+                await sha256.sha256(tokenValue),
+                encryptValue(tokenValue, masterPasswordHash),
                 ''
             );
+            let realm = await this.getConnection();
             await realm.write(() => {
                 realm.create('Token', masterToken)
-                this.masterToken = token;
+                this.masterToken = tokenValue;
             }); 
         }
     }
@@ -77,10 +97,11 @@ class EncryptionService {
             return this.masterToken;
         
         // get the tokenEntity from realm; if no token is set yet, set one
-        let realm = await this.getConnection();
-        let tokens = realm.objects('Token').filtered('id = 0');
-        if (tokens.length == 0) await this.createMasterToken();
-        let token: Token = realm.objects('Token').filtered('id = 0')[0];
+        let token: Token = await this.getTokenFromDatabase();
+        if (token == null) {
+            await this.createMasterToken();
+            token =  await this.getTokenFromDatabase();
+        }
 
         // try to decrypt it with the password 
         try {
@@ -92,12 +113,8 @@ class EncryptionService {
         // user is not password authenticated, use biometric authentication
         if (token.biometricallyProtected != '') {
             try { 
-                console.log('jooooooooooooooooooooo');
                 let biometricToken = this.loginService.getBiometricToken();
-                console.log(token.biometricallyProtected);
-                console.log(biometricToken);
                 this.masterToken = decryptValue(token.biometricallyProtected, biometricToken);
-                console.log(this.masterToken);
                 return this.masterToken; 
             } catch (e) {
                 // The user is not authenticated, but can authenticate in any way
@@ -111,14 +128,50 @@ class EncryptionService {
     }
 
     public async addBiometricProtectionToMasterToken() {
-        let biometricToken = this.loginService.getBiometricToken();
         let masterToken = await this.getMasterToken();
+        let biometricToken = this.loginService.getBiometricToken();
         let realm = await this.getConnection();
         await realm.write(() => {
             let token = realm.objects('Token').filtered('id = 0')[0];
             token.biometricallyProtected = encryptValue(masterToken, biometricToken);
             realm.create('Token', token, true);
-        }); 
+        });
+        this.biometryEnabled = true;
+    }
+
+    public async setMasterPassword(password: string) {
+        let token = await this.getTokenFromDatabase();
+        if (token == null) {
+            // no token created yet; just create one
+            await this.loginService.useMasterPassword(password);
+            await this.createMasterToken();
+        } else {
+            // we need to reecrypt the password protected master token
+            console.log('hoooooo', password, token);
+            let masterToken = await this.getMasterToken();
+            await this.loginService.useMasterPassword(password);
+            let passwordHash = await this.loginService.getMasterPasswordHash();
+            let realm = await this.getConnection();
+            realm.write(() => {
+                token.passwordProtected = encryptValue(masterToken, passwordHash);
+                console.log(token.passwordProtected);
+                realm.create('Token', token, true);
+            })
+        }
+    }
+
+    public async verifyMasterPassword(passwordHash: string) {
+        let token: Token = await this.getTokenFromDatabase();
+        let decrypted = decryptValue(token.passwordProtected, passwordHash);
+        let hash = await sha256.sha256(decrypted);
+        return hash == token.hash;
+    }
+
+    public async verifyBiometricToken(biometricToken: string) {
+        let token: Token = await this.getTokenFromDatabase();
+        let decrypted = decryptValue(token.biometricallyProtected, biometricToken);
+        let hash = await sha256.sha256(decrypted);
+        return hash == token.hash;
     }
 
     public async newCollectionEntity(name: string): Promise<CollectionEntity> {
@@ -126,8 +179,7 @@ class EncryptionService {
 
         // generate key and encrypt it with the master Token
         let key = generateRandomHex(keyLength);
-        let masterToken;
-        masterToken = await this.getMasterToken();
+        let masterToken = await this.getMasterToken();
 
         collectionEntity.encryptedKey = encryptValue(key, masterToken);
         collectionEntity.value = await this.encrypt([], collectionEntity);
@@ -148,5 +200,7 @@ class EncryptionService {
         return encryptValue(json, key);
     } 
 }
+
+EncryptionService.getInstance();
 
 export { EncryptionService };

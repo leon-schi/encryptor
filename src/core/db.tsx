@@ -12,15 +12,6 @@ const CollectionSchema = {
       value: 'string'
     }
   };
-const PasswordsSchema = {
-    name: 'Password',
-    primaryKey: 'id',
-    properties: {
-        id:  {type: 'int', default: 0},
-        hash: 'string',
-        salt: 'string'
-    }
-};
 const TokenSchema = {
     name: 'Token',
     primaryKey: 'id',
@@ -31,12 +22,6 @@ const TokenSchema = {
         biometricallyProtected: 'string'
     }
 };
-
-class PasswordEntry {
-    id: number = 0;
-    hash: string = null;
-    salt: string = '1234567';
-}
 
 class CollectionEntity {
     id: number = 0
@@ -50,7 +35,6 @@ class CollectionEntity {
         this.name = name;
     }
 }
-
 class Token {
     id: number = 0;
     hash: string;
@@ -63,7 +47,6 @@ class Token {
         this.biometricallyProtected = biometricallyProtected;
     }
 }
-
 class Attribute {
     name: string = ''
     value: string = ''
@@ -86,7 +69,7 @@ class Database {
     private realm: any = null;
     public async getConnection() {
         if (this.realm === null) { 
-            this.realm = await Realm.open({schema: [CollectionSchema, PasswordsSchema, TokenSchema], schemaVersion: 7, migration: (oldRealm: any, newRealm: any) => {
+            this.realm = await Realm.open({schema: [CollectionSchema, TokenSchema], schemaVersion: 7, migration: (oldRealm: any, newRealm: any) => {
                 let tokens = newRealm.objects('Token');
                 for (let token of tokens)
                     newRealm.delete(token);
@@ -96,4 +79,4 @@ class Database {
     }
 }
 
-export { Token, PasswordEntry, CollectionEntity, Attribute, Database };
+export { Token, CollectionEntity, Attribute, Database };

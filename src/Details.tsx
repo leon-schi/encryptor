@@ -4,7 +4,7 @@ import {
     NavigationScreenProp,
     NavigationState,
     NavigationEvents } from 'react-navigation';
-import { StyleSheet, View, BackHandler, TouchableHighlight, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, BackHandler, TouchableHighlight, ActivityIndicator, Clipboard, ToastAndroid, TextInput } from 'react-native';
 import { Container, Content, Text, Icon, ActionSheet, Root, H3, Col } from 'native-base';
 import { Transition } from 'react-navigation-fluid-transitions'
 import { flowTransition, fadeTransition, noneTransition } from './Transitions'
@@ -32,7 +32,9 @@ type State = {
     showValues: boolean,
     collection: Collection,
     loading: boolean,
-    deletionPopupVisible: boolean
+    deletionPopupVisible: boolean,
+    renamePopupVisible: boolean,
+    newName: string
 }
 
 export default class DetailsComponent extends React.Component<Props, State> {    
@@ -40,7 +42,9 @@ export default class DetailsComponent extends React.Component<Props, State> {
         showValues: false,
         collection: Collection.emptyCollection(),
         loading: true,
-        deletionPopupVisible: false
+        deletionPopupVisible: false,
+        renamePopupVisible: false,
+        newName: ''
     }
     private collectionService: CollectionService = CollectionService.getInstance();
     private authenticationHelper: AuthenticationHelper = new AuthenticationHelper(this.props.navigation);
@@ -81,28 +85,38 @@ export default class DetailsComponent extends React.Component<Props, State> {
     }
 
     async deleteCollectionAndQuit() {
-        await this.collectionService.deleteCollection(this.state.collection);
-        this.quit();
+        let action = async () => {
+            await this.collectionService.deleteCollection(this.state.collection);
+            this.quit();
+        }
+        this.authenticationHelper.execute(action, "Authenticate to delete collection '" + this.state.collection.name + "'");
     }
 
-    private async saveAttributes() {
-        await this.collectionService.updateCollection(this.state.collection);
+    private async saveAttributes(attributes: Attribute[]) {
+        await this.collectionService.updateCollectionValue(this.state.collection, attributes);
+        this.state.collection.attributes = attributes;
         this.forceUpdate();
     }
 
     async setAttribute(name: string, value: string, index: number) {
         this.state.collection.attributes[index] = new Attribute(name, value);
-        await this.saveAttributes();
+        await this.saveAttributes(this.state.collection.attributes);
     }
 
     async addAttribute(name: string, value: string) {
-        this.state.collection.attributes.push(new Attribute(name, value));
-        await this.saveAttributes();
+        let attributes: Attribute[] = [...this.state.collection.attributes];
+        attributes.push(new Attribute(name, value));
+        await this.saveAttributes(attributes);
     }
 
     async deleteAttribute(index: number) {
         this.state.collection.attributes.splice(index, 1);
-        await this.saveAttributes();
+        await this.saveAttributes(this.state.collection.attributes);
+    }
+
+    copyValue(attribute: Attribute) {
+        Clipboard.setString(attribute.value);
+        ToastAndroid.show("Copied value of '" + attribute.name + "' to clipboard", 50);
     }
 
     openModal(attribute: Attribute, index: number) {
@@ -119,6 +133,22 @@ export default class DetailsComponent extends React.Component<Props, State> {
     }
     hideDeletionPopup = () => {
         this.setState({deletionPopupVisible: false});
+    }
+
+    openRenamePopup = () => {
+        this.setState({renamePopupVisible: true, newName: ''});
+    }
+    hideRenamePopup = () => {
+        this.setState({renamePopupVisible: false});
+    }
+
+    async renameCollection() {
+        let action = async () => {
+            this.state.collection.name = this.state.newName;
+            await this.collectionService.renameCollection(this.state.collection.id, this.state.newName);
+            this.setState({collection: this.state.collection});
+        }
+        this.authenticationHelper.execute(action, "Authenticate to rename collection '" + this.state.collection.name + "'");
     }
 
     toggleValueVisibility = () => {this.setState({showValues: !this.state.showValues})}
@@ -164,7 +194,7 @@ export default class DetailsComponent extends React.Component<Props, State> {
                                 name={attribute.name}
                                 value={this.renderPassword(attribute.value)}
                                 onPress={() => this.openModal(attribute, index)}
-                                onCopy={() => {}}
+                                onCopy={() => {this.copyValue(attribute)}}
                                 itemHeight={itemHeight}
                                 style={{}}
                                 key={index}></AttributeItem>
@@ -185,7 +215,7 @@ export default class DetailsComponent extends React.Component<Props, State> {
                 </View>;
         } else {
             contentSection = 
-                <View>
+                <View style={{flex: 1}}>
                     <MessageBox
                         style={styles.listLayout} 
                         title="Nothing Here Yet!"
@@ -202,39 +232,6 @@ export default class DetailsComponent extends React.Component<Props, State> {
         return (  
             <Root>
                 <NavigationEvents onWillFocus={this.onWillFocus}/>
-
-                <Container style={{marginTop: 18}}>
-
-                    <Content style={styles.contentLayout}>
-                        {/* Header Bar */}
-                        <View style={styles.headLayout}>
-                            {/* Back Button */}
-                            <Transition appear='left'>
-                                <IconicToolButton style={{flex: 1}} icon="arrow-left" onPress={this.quit}></IconicToolButton>
-                            </Transition>
-                            {/* Title */}
-                            <Transition appear='top'>
-                                <CollectionTitle style={{flex: 6}} name={this.state.collection.name}></CollectionTitle>
-                            </Transition>
-                            {/* Settings Button */}
-                            <Transition appear='right'>
-                                <IconicToolButton style={{flex: 1}} icon="settings" onPress={this.showActionSheet}></IconicToolButton>
-                            </Transition>
-                        </View>
-
-
-                        <Transition appear={flowTransition} disappear={noneTransition}>
-                            {contentSection}
-                        </Transition>
-
-                    </Content>
-                </Container>
-
-                <AnimatedFab
-                    onPress={() => this.openModal(new Attribute('New Attribute', ''), null)}
-                    color={COLORS.primary}>
-                    <Icon name="plus" type="Feather" style={{color: '#fff'}}/>
-                </AnimatedFab>
 
                 <Popup visible={this.state.deletionPopupVisible}>
                     <H3>Confirm</H3>
@@ -260,6 +257,72 @@ export default class DetailsComponent extends React.Component<Props, State> {
                         </TouchableHighlight>
                     </View>
                 </Popup>
+
+                <Popup visible={this.state.renamePopupVisible}>
+                    <H3>Rename Collection</H3>
+                    <Text>Enter the new name for collection '{this.state.collection.name}'?</Text>
+
+                    <View style={{marginVertical: 30}}>
+                        <TextInput 
+                            placeholder="New Name" 
+                            style={{borderBottomWidth: 1, borderColor: '#ddd', padding: 1}}
+                            value={this.state.newName}
+                            onChangeText={(text) => {this.setState({newName: text})}}/>
+                    </View>
+
+                    <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
+                        <TouchableHighlight
+                            activeOpacity={0.5}
+                            underlayColor="#ccc"
+                            style={{padding: 5, borderRadius: 2, marginRight: 10}}
+                            onPress={this.hideRenamePopup}>
+                            <Text>CANCEL</Text>
+                        </TouchableHighlight>
+                        <TouchableHighlight
+                            activeOpacity={0.5}
+                            underlayColor="#ccc"
+                            style={{padding: 5, borderRadius: 2}}
+                            onPress={() => {
+                                this.hideRenamePopup();
+                                this.renameCollection();
+                            }}>
+                            <Text style={{color: COLORS.primary}}>OK</Text>
+                        </TouchableHighlight>
+                    </View>
+                </Popup>
+
+                <Container style={{marginTop: 25, flex: 1}}>
+
+                    <Content style={styles.contentLayout}>
+                        {/* Header Bar */}
+                        <View style={styles.headLayout}>
+                            {/* Back Button */}
+                            <Transition appear='left'>
+                                <IconicToolButton style={{flex: 1}} icon="arrow-left" onPress={this.quit}></IconicToolButton>
+                            </Transition>
+                            {/* Title */}
+                            <Transition appear='top'>
+                                <CollectionTitle style={{flex: 6}} name={this.state.collection.name}></CollectionTitle>
+                            </Transition>
+                            {/* Settings Button */}
+                            <Transition appear='right'>
+                                <IconicToolButton style={{flex: 1}} icon="edit" onPress={this.openRenamePopup}></IconicToolButton>
+                            </Transition>
+                        </View>
+
+
+                        <Transition appear={flowTransition} disappear={fadeTransition}>
+                            {contentSection}
+                        </Transition>
+
+                    </Content>
+                </Container>
+
+                {this.state.loading ? <></> : <AnimatedFab
+                    onPress={() => this.openModal(new Attribute('New Attribute', ''), null)}
+                    color={COLORS.primary}>
+                    <Icon name="plus" type="Feather" style={{color: '#fff'}}/>
+                </AnimatedFab>}
             </Root>
         );
     }
@@ -275,7 +338,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row', 
         alignItems: 'center', 
         justifyContent: 'center', 
-        height: 55
+        //height: 55
     },
     contentLayout: {
         padding: 20

@@ -105,8 +105,18 @@ class CollectionService {
 
     public async updateCollection(collection: Collection) {
         await this.update({
-            id: collection.id, 
+            id: collection.id,
+            name: collection.name,
+            index: collection.entity.index,
             value: await this.encryptionService.encrypt(collection.attributes, collection.entity)
+        });
+        await this.readCollections();
+    }
+
+    public async updateCollectionValue(collection: Collection, attributes: Attribute[]) {
+        await this.update({
+            id: collection.id,
+            value: await this.encryptionService.encrypt(attributes, collection.entity)
         });
         await this.readCollections();
     }
@@ -124,10 +134,18 @@ class CollectionService {
 
     public async reorderCollections(collections: CollectionInfo[]) {
         let realm = await this.getConnection();
+
+        let indices: number[] = []
+        for (let collectionInfo of collections) {
+            let collection = realm.objects('Collection').filtered('id = ' + collectionInfo.id)[0];
+            indices.push(collection.index);
+        }
+        indices.sort();
+
         await realm.write(() => {
             for (let i = 0; i < collections.length; i++) {
                 let collection = realm.objects('Collection').filtered('id = ' + collections[i].id)[0];
-                collection.index = i;
+                collection.index = indices[i];
             }
         });
         await this.readCollections();

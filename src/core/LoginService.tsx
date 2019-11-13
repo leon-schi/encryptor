@@ -1,10 +1,10 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import Biometrics from 'react-native-biometrics'
 
-import { Database, PasswordEntry } from './db'
+import { EncryptionService } from './EncryptionService'
 
+const defaultTimeoutMinutes = 10;
 const sha256 = require('react-native-sha256')
-const masterPasswordId = 0;
 const salt = '38askjdbc87473h';
 
 class NotAuthenticatedException extends Error {
@@ -27,6 +27,7 @@ enum BiometryType {
 class LoginService {
     private biometricToken: string;
     private masterPasswordHash: string;
+    private loginTimestamp: Date = null;
     
     private static biometryType: BiometryType = null;
     private static instance: LoginService;
@@ -42,6 +43,10 @@ class LoginService {
         this.createKeys();
     }
 
+    private encryptionService(): EncryptionService {
+        return EncryptionService.getInstance();
+    }
+
     public getMasterPasswordHash(): string {
         if (this.masterPasswordHash !== undefined)
             return this.masterPasswordHash;
@@ -55,64 +60,79 @@ class LoginService {
     }
 
     public isUserBiometricallyLoggedIn() {
-        return this.biometricToken != null;
+        return this.biometricToken != undefined;
     }
 
-    private async getConnection(): Promise<any> {
-        return await Database.getInstance().getConnection()
+    public isUserPasswordLoggedIn() {
+        return this.masterPasswordHash != undefined;
     }
 
-    private async getPasswordEntryForId(id: number): Promise<PasswordEntry> {
-        let realm = await this.getConnection();
-        return realm.objects('Password').filtered('id = ' + id)[0];
+    public isUserLoggedIn() {
+        return this.isUserBiometricallyLoggedIn() || this.isUserPasswordLoggedIn();
     }
 
-    private async verifyPassword(passwordEntry: PasswordEntry, password: string) {
-        let hash = await sha256.sha256(password + passwordEntry.salt);
-        if (hash !== passwordEntry.hash)
-            throw new LoginFailedException('Password Verification Failed!');
+    private async initTimeout() {
+        this.loginTimestamp = new Date();
     }
 
+    public enforceTimeout() {
+        if (this.loginTimestamp != null) {
+            let timediff = new Date().valueOf() - this.loginTimestamp.valueOf();
+            if (new Date(timediff).getSeconds() > defaultTimeoutMinutes) {
+                this.logout()
+            }
+        }
+    }
+    
     public async setMasterPassword(password: string) {
-        let passwordEntry = new PasswordEntry();
-        passwordEntry.id = masterPasswordId;
-        passwordEntry.hash = await sha256.sha256(password + passwordEntry.salt);
+        await this.encryptionService().setMasterPassword(password);
+    }
 
-        let realm = await this.getConnection();
-        realm.write(() => {
-            let objects = realm.objects('Password').filtered('id = 0');
-
-            if (objects.length == 0)
-                realm.create('Password', passwordEntry);
-            else
-                realm.create('Password', passwordEntry, true);
-        });
+    public async hashPassword(password: string) {
+        return await sha256.sha256(password + salt);
     }
 
     public async masterPasswordLogin(password: string) {
-        let passwordEntry: PasswordEntry = await this.getPasswordEntryForId(masterPasswordId);
-        await this.verifyPassword(passwordEntry, password);
-        this.masterPasswordHash = await sha256.sha256(password + salt);
+        let result = await this.encryptionService().verifyMasterPassword(await this.hashPassword(password));
+        if (result)
+            await this.useMasterPassword(password);
+        else
+            throw new LoginFailedException('Password Verification Failed!');
     }
 
-    private async verifyToken(token: string, payload: string) {
-        
+    public async useMasterPassword(password: string) {
+        this.masterPasswordHash = await this.hashPassword(password);
+        await this.initTimeout();
     }
 
-    public async loginWithToken(token: string, payload: string) {
-        await this.verifyToken(token, payload);
+    public async loginWithToken(token: string) {
         // we need to hash the token in order to ensure a suitable and constant length
+        let biometricToken = await sha256.sha256(token);
+        let result: boolean = await this.encryptionService().verifyBiometricToken(biometricToken);
+        if (result)
+            this.biometricToken = biometricToken;
+        else
+            throw new LoginFailedException('Biometic Token Verification Failed!');
+    }
+
+    public async useToken(token: string) {
         this.biometricToken = await sha256.sha256(token);
+        await this.initTimeout();
     }
     
+    public logout() {
+        this.biometricToken = undefined;
+        this.masterPasswordHash = undefined;
+        this.encryptionService().logout();
+    }
+
     public async biometricAuthentication() {
         this.createKeys();
         let payload = 'this is a funny payload that will be encrypted with the private key if the user authenticates';
         let token = await Biometrics.createSignature('Sign in', payload);
-        await this.loginWithToken(token, payload);
+        await this.useToken(token);
     }
-        
-
+    
     public async setPublicKey(publicKey: string) {
         await AsyncStorage.setItem('publicKey', publicKey);
     }
