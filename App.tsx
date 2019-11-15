@@ -10,6 +10,7 @@ import DetailsComponent from './src/Details'
 import ChangePasswordComponent from './src/ChangePassword'
 import Modal from './src/Modal'
 import Login from './src/Login'
+import StartComponent from './src/introduction/Start'
 
 const transitionConfig = {
 	duration: 300,
@@ -24,7 +25,8 @@ const MainNavigator: any = createFluidNavigator({
 	'ChangePassword': {screen: ChangePasswordComponent},
 	'Details': {screen: DetailsComponent},
 	'Modal': {screen: Modal},
-	'Login': {screen: Login}
+	'Login': {screen: Login},
+	'Start': {screen: StartComponent}
 	}, {
 		headerMode: 'none',
 		navigationOptions: {

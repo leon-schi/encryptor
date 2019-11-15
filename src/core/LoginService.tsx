@@ -47,6 +47,10 @@ class LoginService {
         return EncryptionService.getInstance();
     }
 
+    public async isMasterPasswordSet(): Promise<boolean> {
+        return await EncryptionService.getInstance().isMasterPasswordSet();
+    }
+
     public getMasterPasswordHash(): string {
         if (this.masterPasswordHash !== undefined)
             return this.masterPasswordHash;

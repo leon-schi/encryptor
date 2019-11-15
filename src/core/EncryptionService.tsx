@@ -44,6 +44,10 @@ class EncryptionService {
         return await Database.getInstance().getConnection()
     }
 
+    public async isMasterPasswordSet(): Promise<boolean> {
+        return await this.getTokenFromDatabase() != null;
+    }
+
     public logout() {
         this.masterToken = null;
     }

@@ -25,9 +25,10 @@ import COLORS from './Colors';
 
 /*
 TODOS
+- logo
+- funny fast fine first screen
 - Logout time
 - Reencrypt
-- Introduction
 - Dark Mode
 */
 
@@ -69,18 +70,18 @@ export default class HomeComponent extends React.Component<Props, State> {
     fabOffset: Animated.Value = new Animated.Value(0);
     checkOffset: Animated.Value = new Animated.Value(fabOffsetDistance);
 
-    constructor(props: Props) {
-        super(props);
-    }
-
     componentDidMount() {
         this.refreshCollections();
     }
 
-    onWillFocus = () => {
+    onWillFocus = async () => {
         this.loginService.enforceTimeout();
-        if (!this.loginService.isUserLoggedIn())
+        
+        if (!(await this.loginService.isMasterPasswordSet())) {
+            this.props.navigation.navigate('Start');
+        } else if (!this.loginService.isUserLoggedIn()) {
             this.logout();
+        }
         this.setState({collections: this.collectionService.getCollections()});
     }
 
