@@ -154,24 +154,24 @@ export default class SettingsComponent extends React.Component<Props, State> {
                                 title="Change Password" 
                                 onPress={() => {this.confirmPassword()}}/>
                             {this.biometryOption()}
-                            <SettingsItem 
+                            {/*<SettingsItem 
                                 showSwitch={false}
                                 switchState={true}
                                 loading={false} 
                                 title="Re-Encrypt Everything" 
-                                onPress={() => {}}/>
+                                onPress={() => {}}/>*/}
                             <SettingsItem 
                                 showSwitch={true}
                                 switchState={false}
                                 loading={false} 
                                 title="Dark Mode" 
                                 onPress={() => {}}/>
-                            <SettingsItem 
+                            {/*<SettingsItem 
                                 showSwitch={false}
                                 switchState={true}
                                 loading={false} 
-                                title="Rate This App" 
-                                onPress={() => {}}/>
+                                title="Rate This App"
+                                onPress={() => {}}/>*/}
                         </View>
                     </View>
                 </Transition>

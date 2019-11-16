@@ -3,7 +3,7 @@ import {
     NavigationParams,
     NavigationScreenProp,
     NavigationState } from 'react-navigation';
-import { StyleSheet, TextInput, View, StatusBar, BackHandler } from 'react-native';
+import { StyleSheet, TextInput, View, StatusBar, BackHandler, Image } from 'react-native';
 import { Text, Icon } from 'native-base';
 import { OutlineButton } from './components/OutlineButton'
 import { flowTransition } from './Transitions'
@@ -139,6 +139,30 @@ export default class Login extends React.Component<Props, State> {
         return <></>
     }
 
+    getMessage() {
+        if (this.message == '')
+            return (<></>);
+        else
+            return (<Text style={{textAlign: 'center', color: 'white', marginTop: 10}}>{this.message}</Text>);
+    }
+
+    getModeInfo() {
+        let modeInfo = '';
+        if (this.mode == 'password')
+            modeInfo = 'Password required'
+        else if (this.mode == 'biometric') {
+            if (this.state.biometryType == BiometryType.Fingerprint)
+                modeInfo = 'Fingerprint required'
+            else
+                modeInfo = 'Face-ID required'
+        }
+
+        if (modeInfo == '')
+            return (<></>);
+        else
+            return (<Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', marginVertical: 5}}>{modeInfo}</Text>);
+    }
+
     render() {
         let badge = <></>;
         if (this.state.errorMessage !== '')
@@ -154,26 +178,22 @@ export default class Login extends React.Component<Props, State> {
                     <Text style={{color: 'white'}}>{this.state.errorMessage}</Text>
                 </View>
 
-        let modeInfo = '';
-        if (this.mode == 'password')
-            modeInfo = 'Password required'
-        else if (this.mode == 'biometric') {
-            if (this.state.biometryType == BiometryType.Fingerprint)
-                modeInfo = 'Fingerprint required'
-            else
-                modeInfo = 'Face-ID required'
-        }
+        
 
         return (
             <Transition appear={flowTransition}>
                 <View style={styles.contentLayout}>
                     <StatusBar translucent={true} animated={true} backgroundColor="rgba(255,255, 255,00)" barStyle="light-content" />
 
-                    <Icon type="Feather" name='lock' style={{color: "white", fontSize: 60}}/>
-                    <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 30, marginVertical: 20}}>Encryptor</Text>
+                    {//<Icon type="Feather" name='lock' style={{color: "white", fontSize: 60}}/>
+                    }
+                    <Image source={require('../assets/outlinelogowhite.png')} style={{width: 100, height: 100}}/>
+                    <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 30, marginBottom: 10}}>Encryptor</Text>
+                    <Icon type="Feather" name='lock' style={{color: "white", fontSize: 35, marginRight: 10}}/>
 
-                    <Text style={{textAlign: 'center', color: 'white', marginTop: 10}}>{this.message}</Text>
-                    <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', marginVertical: 5}}>{modeInfo}</Text>
+                    {this.getMessage()}
+                    {this.getModeInfo()}
+                    
 
                     <View style={{height: 40}}>
                         {badge}

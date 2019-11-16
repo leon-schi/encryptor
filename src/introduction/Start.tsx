@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, View, StyleSheet, TextInput, ScrollView, Animated, Dimensions, BackHandler } from 'react-native'
+import { SafeAreaView, View, StyleSheet, TextInput, ScrollView, Animated, Dimensions, BackHandler, StatusBar } from 'react-native'
 import { Text, Icon } from 'native-base';
 import { 
     NavigationParams,
@@ -46,6 +46,7 @@ export default class StartComponent extends React.Component<Props, State> {
     render() {
         return (
                 <SafeAreaView style={styles.contentLayout}>
+                    <StatusBar translucent={true} animated={true} backgroundColor="rgba(255,255, 255,0)" barStyle="dark-content" />
                     <ScrollView style={{
                         paddingTop: 70,
                         padding: horizontalPadding}}>
@@ -63,7 +64,7 @@ export default class StartComponent extends React.Component<Props, State> {
 
                             <Animated.View style={{transform: [{translateX: this.offset}], width: width}}>
                                 <BiometricsComponent
-                                    onSuccess={() => {this.props.navigation.goBack();}}/>
+                                    onSuccess={() => {this.props.navigation.replace('Home');}}/>
                             </Animated.View>
                         </View>
 

@@ -79,10 +79,26 @@ class LoginService {
         this.loginTimestamp = new Date();
     }
 
-    public enforceTimeout() {
+    public async getTimeoutInMinutes(): Promise<number> {
+        try {
+            let timeoutStr = await AsyncStorage.getItem('timeout');
+            if (timeoutStr == null)
+                return defaultTimeoutMinutes;
+            return Number(timeoutStr);
+        } catch (e) {
+            return defaultTimeoutMinutes;
+        }
+    }
+
+    public async setTimeoutInMinutes(timeout: number) {
+        await AsyncStorage.setItem('timeout', String(timeout));
+    }
+
+    public async enforceTimeout() {
         if (this.loginTimestamp != null) {
+            let timeout = await this.getTimeoutInMinutes(); 
             let timediff = new Date().valueOf() - this.loginTimestamp.valueOf();
-            if (new Date(timediff).getSeconds() > defaultTimeoutMinutes) {
+            if (new Date(timediff).getMinutes() > timeout) {
                 this.logout()
             }
         }
@@ -195,5 +211,7 @@ class LoginService {
         return LoginService.biometryType;
     }
 }
+
+LoginService.getInstance();
 
 export { LoginService, LoginFailedException, NotAuthenticatedException, BiometryType};

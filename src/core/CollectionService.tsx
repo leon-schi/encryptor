@@ -60,7 +60,7 @@ class CollectionService {
     }
 
     private encryptionService: EncryptionService = EncryptionService.getInstance();
-    private collectionInfos: CollectionInfo[] | null = null
+    private collectionInfos: CollectionInfo[] | null = []
     public getCollections(): CollectionInfo[] | null {
         return this.collectionInfos;
     }

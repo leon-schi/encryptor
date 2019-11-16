@@ -18,7 +18,7 @@ import { ReorderableList } from './components/ReorderableList'
 import { AnimatedFab } from './components/AnimatedFab'
 
 import { CollectionService, CollectionInfo } from './core/CollectionService'
-import { LoginService, } from './core/LoginService' 
+import { LoginService } from './core/LoginService' 
 import { AuthenticationHelper } from './core/AuthenticationHelper' 
 
 import COLORS from './Colors';
@@ -71,15 +71,18 @@ export default class HomeComponent extends React.Component<Props, State> {
     checkOffset: Animated.Value = new Animated.Value(fabOffsetDistance);
 
     componentDidMount() {
+        this.logout();
         this.refreshCollections();
     }
 
     onWillFocus = async () => {
         this.loginService.enforceTimeout();
         
-        if (!(await this.loginService.isMasterPasswordSet())) {
+        /*if (!(await this.loginService.isMasterPasswordSet())) {
             this.props.navigation.navigate('Start');
-        } else if (!this.loginService.isUserLoggedIn()) {
+        } else*/ 
+        
+        if (!this.loginService.isUserLoggedIn()) {
             this.logout();
         }
         this.setState({collections: this.collectionService.getCollections()});
@@ -207,7 +210,7 @@ export default class HomeComponent extends React.Component<Props, State> {
 
                     <StatusBar translucent={true} animated={true} backgroundColor="rgba(255,255, 255,0)" barStyle="dark-content" />
 
-                    <View style={{flexDirection: 'column', backgroundColor: '#fff'}}>
+                    <View style={{flexDirection: 'column', backgroundColor: COLORS.background}}>
                         <View elevation={2} style={{
                                 height: 50,
                                 backgroundColor: '#eee', 
