@@ -246,7 +246,7 @@ class BiometricsComponent extends React.Component<BiometricsProps, BiometricsSta
                     <OutlineButton
                         title="NO" 
                         icon="x" 
-                        color={COLORS.dark}
+                        color="#333"
                         onPress={() => {this.cancel()}}></OutlineButton>
                 </View>
             </>
@@ -264,31 +264,6 @@ class BiometricsComponent extends React.Component<BiometricsProps, BiometricsSta
                 <Text style={{textAlign: 'center', fontSize: 18, fontWeight: 'bold'}}>Successfully set Password</Text>
                 
                 {this.getContent()}
-
-                {/*<View style={{alignItems: 'center', justifyContent: 'center', flexDirection: 'row', marginTop: 30}}>
-                    <View style={{flex: 1, flexDirection: 'column', paddingTop: 10}}>
-                        <Icon type="Entypo" name="fingerprint" style={{flex: 1, color: COLORS.primary, fontSize: 50}}/>
-                    </View>
-                    <View style={{flex: 5, flexDirection: 'column', justifyContent:"center", alignItems: 'center'}}>
-                        <Text style={{textAlign: 'left', fontSize: 16, color: '#777', marginBottom: 20, paddingHorizontal: 10}}>
-                            
-                        </Text>
-                    </View>
-                </View>
-
-                <View style={{marginTop: 10}}>
-                    <OutlineButton 
-                        title="YES" 
-                        icon="check" 
-                        color={COLORS.primary}
-                        loading={this.state.loading}
-                        onPress={() => {this.enableBiometrics()}}></OutlineButton>
-                    <OutlineButton
-                        title="NO" 
-                        icon="x" 
-                        color={COLORS.dark}
-                        onPress={() => {this.cancel()}}></OutlineButton>
-                </View>*/}
             </View>
         )
     }

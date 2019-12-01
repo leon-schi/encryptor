@@ -9,6 +9,7 @@ import {
 import { EncryptionService } from './core/EncryptionService'
 import { CollectionService } from './core/CollectionService'
 import COLORS from './Colors';
+import { applySavedMode } from './Colors';
 
 type Props = {
     navigation: NavigationScreenProp<NavigationState, NavigationParams>
@@ -19,6 +20,8 @@ export default class Loader extends React.Component<Props> {
 
     componentDidMount() {
         let action = async () => {
+            await applySavedMode();
+
             if (!(await this.encryptionService.isMasterPasswordSet())) {
                 this.props.navigation.replace('Start');
             } else {

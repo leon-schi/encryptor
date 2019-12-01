@@ -89,7 +89,8 @@ class Popup extends React.Component<Props, State> {
                                         borderRadius: 7,
                                         padding: 20,
                                         opacity: this.modalOpacity,
-                                        transform: [{scale: this.modalScale}]
+                                        transform: [{scale: this.modalScale}],
+                                        ...this.props.style
                                     }}>
                                     {this.props.children}
                                 </Animated.View>

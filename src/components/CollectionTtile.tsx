@@ -4,10 +4,12 @@ import { Text } from 'native-base';
 
 type Props = {
     name: string,
-    style: any
+    style: any,
+    textColor?: string
 }
 
 class CollectionTitle extends React.Component<Props> {
+
     render() {
         return (
             <View style={{
@@ -15,8 +17,8 @@ class CollectionTitle extends React.Component<Props> {
                 flexDirection: 'column', 
                 paddingLeft: 30
             }}>
-                <Text style={{fontSize: 12}}>COLLECTION</Text>
-                <Text style={{fontSize: 22}}>{this.props.name}</Text>
+                <Text style={{fontSize: 12, color: this.props.textColor}}>COLLECTION</Text>
+                <Text style={{fontSize: 22, color: this.props.textColor}}>{this.props.name}</Text>
             </View>
         );
     }

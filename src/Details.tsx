@@ -4,7 +4,7 @@ import {
     NavigationScreenProp,
     NavigationState,
     NavigationEvents } from 'react-navigation';
-import { StyleSheet, View, BackHandler, TouchableHighlight, ActivityIndicator, Clipboard, ToastAndroid, TextInput } from 'react-native';
+import { StyleSheet, View, BackHandler, TouchableHighlight, StatusBar, ActivityIndicator, Clipboard, ToastAndroid, TextInput } from 'react-native';
 import { Container, Content, Text, Icon, ActionSheet, Root, H3, Col } from 'native-base';
 import { Transition } from 'react-navigation-fluid-transitions'
 import { flowTransition, fadeTransition, noneTransition } from './Transitions'
@@ -230,24 +230,24 @@ export default class DetailsComponent extends React.Component<Props, State> {
         }
 
         return (  
-            <Root>
+            <Root style={{backgroundColor: COLORS.background}}>
                 <NavigationEvents onWillFocus={this.onWillFocus}/>
 
-                <Popup visible={this.state.deletionPopupVisible}>
-                    <H3>Confirm</H3>
-                    <Text>Do you really want to delete the collection '{this.state.collection.name}'?</Text>
+                <Popup visible={this.state.deletionPopupVisible} style={{backgroundColor: COLORS.popup}}>
+                    <H3 style={{color: COLORS.fontPrimary}}>Confirm</H3>
+                    <Text style={{color: COLORS.fontPrimary}}>Do you really want to delete the collection '{this.state.collection.name}'?</Text>
 
                     <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
                         <TouchableHighlight
                             activeOpacity={0.5}
-                            underlayColor="#ccc"
+                            underlayColor={COLORS.highlight}
                             style={{padding: 5, borderRadius: 2, marginRight: 10}}
                             onPress={this.hideDeletionPopup}>
-                            <Text>CANCEL</Text>
+                            <Text style={{color: COLORS.fontPrimary}}>CANCEL</Text>
                         </TouchableHighlight>
                         <TouchableHighlight
                             activeOpacity={0.5}
-                            underlayColor="#ccc"
+                            underlayColor={COLORS.highlight}
                             style={{padding: 5, borderRadius: 2}}
                             onPress={() => {
                                 this.hideDeletionPopup();
@@ -258,14 +258,15 @@ export default class DetailsComponent extends React.Component<Props, State> {
                     </View>
                 </Popup>
 
-                <Popup visible={this.state.renamePopupVisible}>
-                    <H3>Rename Collection</H3>
-                    <Text>Enter the new name for collection '{this.state.collection.name}'?</Text>
+                <Popup visible={this.state.renamePopupVisible} style={{backgroundColor: COLORS.popup}}>
+                    <H3 style={{color: COLORS.fontPrimary}}>Rename Collection</H3>
+                    <Text style={{color: COLORS.fontPrimary}}>Enter the new name for collection '{this.state.collection.name}'?</Text>
 
                     <View style={{marginVertical: 30}}>
                         <TextInput 
                             placeholder="New Name" 
-                            style={{borderBottomWidth: 1, borderColor: '#ddd', padding: 1}}
+                            placeholderTextColor={COLORS.strongHighlight}
+                            style={{borderBottomWidth: 1, color: COLORS.fontPrimary, borderColor: COLORS.strongHighlight, padding: 1}}
                             value={this.state.newName}
                             onChangeText={(text) => {this.setState({newName: text})}}/>
                     </View>
@@ -273,14 +274,14 @@ export default class DetailsComponent extends React.Component<Props, State> {
                     <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
                         <TouchableHighlight
                             activeOpacity={0.5}
-                            underlayColor="#ccc"
+                            underlayColor={COLORS.highlight}
                             style={{padding: 5, borderRadius: 2, marginRight: 10}}
                             onPress={this.hideRenamePopup}>
-                            <Text>CANCEL</Text>
+                            <Text style={{color: COLORS.fontPrimary}}>CANCEL</Text>
                         </TouchableHighlight>
                         <TouchableHighlight
                             activeOpacity={0.5}
-                            underlayColor="#ccc"
+                            underlayColor={COLORS.highlight}
                             style={{padding: 5, borderRadius: 2}}
                             onPress={() => {
                                 this.hideRenamePopup();
@@ -291,25 +292,29 @@ export default class DetailsComponent extends React.Component<Props, State> {
                     </View>
                 </Popup>
 
-                <Container style={{marginTop: 25, flex: 1}}>
+                <Container style={{flex: 1, backgroundColor: COLORS.background}}>
+                    <View style={{backgroundColor: COLORS.background, height: 25}}/>
 
-                    <Content style={styles.contentLayout}>
+                    <Content style={{
+                        ...styles.contentLayout,
+                        backgroundColor: COLORS.background}}>
                         {/* Header Bar */}
                         <View style={styles.headLayout}>
                             {/* Back Button */}
                             <Transition appear='left'>
-                                <IconicToolButton style={{flex: 1}} icon="arrow-left" onPress={this.quit}></IconicToolButton>
+                                <IconicToolButton color={COLORS.fontPrimary} style={{flex: 1}} icon="arrow-left" onPress={this.quit}></IconicToolButton>
                             </Transition>
                             {/* Title */}
                             <Transition appear='top'>
-                                <CollectionTitle style={{flex: 6}} name={this.state.collection.name}></CollectionTitle>
+                                <CollectionTitle textColor={COLORS.fontPrimary} style={{flex: 6}} name={this.state.collection.name}></CollectionTitle>
                             </Transition>
                             {/* Settings Button */}
                             <Transition appear='right'>
-                                <IconicToolButton style={{flex: 1}} icon="edit" onPress={this.openRenamePopup}></IconicToolButton>
+                                <IconicToolButton color={COLORS.fontPrimary} style={{flex: 1}} icon="edit" onPress={this.openRenamePopup}></IconicToolButton>
                             </Transition>
                         </View>
 
+                        <StatusBar translucent={true} animated={true} backgroundColor="rgba(255,255, 255,0)" barStyle={COLORS.barStyle}/>
 
                         <Transition appear={flowTransition} disappear={fadeTransition}>
                             {contentSection}
@@ -341,7 +346,8 @@ const styles = StyleSheet.create({
         //height: 55
     },
     contentLayout: {
-        padding: 20
+        padding: 20,
+        backgroundColor: COLORS.background
     },
     listLayout: {
         marginTop: 30,

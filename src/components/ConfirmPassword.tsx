@@ -45,9 +45,9 @@ class ConfirmPassword extends React.Component<Props, State> {
 
     render() {
         return (
-            <Popup visible={this.props.visible}>
-                <H3>Confirm Password</H3>
-                <Text>Please enter the master password to proceed</Text>
+            <Popup visible={this.props.visible} style={{backgroundColor: COLORS.popup}}>
+                <H3 style={{color: COLORS.fontPrimary}}>Confirm Password</H3>
+                <Text style={{color: COLORS.fontPrimary}}>Please enter the master password to proceed</Text>
 
                 <View style={{flexDirection: 'row', justifyContent: 'center', marginTop: 5, height: 20}}>
                     {this.state.errorMessage != '' ? <View style={{
@@ -67,7 +67,8 @@ class ConfirmPassword extends React.Component<Props, State> {
                     <TextInput 
                         secureTextEntry={true}
                         placeholder="Password" 
-                        style={{borderBottomWidth: 1, borderColor: '#ddd', padding: 1}}
+                        placeholderTextColor={COLORS.strongHighlight}
+                        style={{borderBottomWidth: 1, borderColor: COLORS.strongHighlight, color: COLORS.fontPrimary, padding: 1}}
                         value={this.state.password}
                         onChangeText={(text) => {this.setState({password: text})}}/>
                 </View>
@@ -75,14 +76,14 @@ class ConfirmPassword extends React.Component<Props, State> {
                 <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
                     <TouchableHighlight
                         activeOpacity={0.5}
-                        underlayColor="#ccc"
+                        underlayColor={COLORS.highlight}
                         style={{padding: 5, borderRadius: 2, marginRight: 10}}
                         onPress={() => {this.cancel()}}>
-                        <Text>CANCEL</Text>
+                        <Text style={{color: COLORS.fontPrimary}}>CANCEL</Text>
                     </TouchableHighlight>
                     <TouchableHighlight
                         activeOpacity={0.5}
-                        underlayColor="#ccc"
+                        underlayColor={COLORS.highlight}
                         style={{padding: 5, borderRadius: 2}}
                         onPress={() => {this.confirm()}}>
                         <Text style={{color: COLORS.primary}}>CONFIRM</Text>

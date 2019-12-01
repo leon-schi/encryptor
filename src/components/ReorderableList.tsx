@@ -213,7 +213,7 @@ class ReorderableList extends React.Component<Props, State> {
                                 <Icon type="Feather" name='key' style={{flex: 1, color: COLORS.primary}}/>
                                                 
                                 <Transition shared={String(item.id)}>
-                                    <CollectionTitle style={{flex: 6}} name={item.name}></CollectionTitle>
+                                    <CollectionTitle style={{flex: 6}} name={item.name} textColor={COLORS.fontPrimary}></CollectionTitle>
                                 </Transition>
                         </ReorderableListItem>    
                     )}

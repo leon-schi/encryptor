@@ -80,19 +80,19 @@ export default class ChangePasswordComponent extends React.Component<Props, Stat
     render() {
         return (
             <>
-                <Popup visible={this.state.successMessageVisible}>
+                <Popup visible={this.state.successMessageVisible} style={{backgroundColor: COLORS.popup}}>
                     <View style={{
                         padding: 15,
                         flexDirection: 'row',
                         alignItems: 'center'}}>
-                            <Icon type="Feather" name='check' style={{color: COLORS.primary, fontSize: 30, marginRight: 10}}/>
-                            <Text style={{fontSize: 18, paddingRight: 20}}>Successfully changed Password</Text>
+                            <Icon type="Feather" name='check' style={{color: COLORS.success, fontSize: 30, marginRight: 10}}/>
+                            <Text style={{fontSize: 18, paddingRight: 20, color: COLORS.fontPrimary}}>Successfully changed Password</Text>
                     </View>
 
                     <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
                         <TouchableHighlight
                             activeOpacity={0.5}
-                            underlayColor="#ccc"
+                            underlayColor={COLORS.highlight}
                             style={{padding: 5, borderRadius: 2}}
                             onPress={() => {this.setState({successMessageVisible: false}); this.quit()}}>
                             <Text style={{color: COLORS.primary}}>OK</Text>
@@ -100,77 +100,79 @@ export default class ChangePasswordComponent extends React.Component<Props, Stat
                     </View>
                 </Popup>
 
-                <Transition appear={flowTransition}>
-                    <View style={{marginTop: 0, backgroundColor: '#fff', flex: 1}}>
-                        <NavigationEvents onWillFocus={this.onWillFocus}/>
-                        <View elevation={3} style={styles.headerLayout}>
-                            <Body style={styles.headerBodyLayout}>
-                                <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 18}}>
-                                    <View style={{flex: 1}}>
-                                        <IconicToolButton style={{flex: 1}} icon="arrow-left" onPress={() => {this.quit()}}></IconicToolButton>
+                <View style={{flex: 1, backgroundColor: COLORS.background}}>
+                    <Transition appear={flowTransition}>
+                        <View style={{marginTop: 0, backgroundColor: COLORS.background, flex: 1}}>
+                            <NavigationEvents onWillFocus={this.onWillFocus}/>
+                            <View elevation={3} style={{...styles.headerLayout, backgroundColor: COLORS.header}}>
+                                <Body style={styles.headerBodyLayout}>
+                                    <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 18}}>
+                                        <View style={{flex: 1}}>
+                                            <IconicToolButton color={COLORS.fontPrimary} style={{flex: 1}} icon="arrow-left" onPress={() => {this.quit()}}></IconicToolButton>
+                                        </View>
+                                        <Title style={{flex: 7, fontSize: 24, color: COLORS.fontPrimary}}>Configure</Title>
+                                        <View style={{flex: 1}}></View>
                                     </View>
-                                    <Title style={{flex: 7, fontSize: 24, color: 'black'}}>Configure</Title>
-                                    <View style={{flex: 1}}></View>
-                                </View>
-                            </Body>
-                        </View>
+                                </Body>
+                            </View>
 
-                        <StatusBar translucent={true} animated={true} backgroundColor="rgba(255,255, 255,0)" barStyle="dark-content" />
+                            <StatusBar translucent={true} animated={true} backgroundColor="rgba(255,255, 255,0)" barStyle={COLORS.barStyle} />
 
-                        <ScrollView style={{flexDirection: 'column', backgroundColor: '#fff'}}>
-                            
-                            <View style={{margin: 20}}>
-                                <MessageBox
-                                    title="Change the Master Password" message="Here you can change the master password. Remember it well as you will lose access to this app as you loose it."></MessageBox>
+                            <ScrollView style={{flexDirection: 'column', backgroundColor: COLORS.background}}>
                                 
-                                <View style={{flexDirection: 'row', justifyContent: 'center', marginTop: 20, height: 35}}>
-                                    {this.state.errorMessage != '' ? <View style={{
-                                        borderWidth: 1,
-                                        borderRadius: 50,
-                                        borderColor: COLORS.danger,
-                                        padding: 15,
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        height: 40}}>
-                                            <Icon type="Feather" name='alert-circle' style={{color: COLORS.danger, fontSize: 20, marginRight: 10}}/>
-                                            <Text style={{color: COLORS.danger}}>{this.state.errorMessage}</Text>
-                                    </View>: <></>}
-                                </View>
+                                <View style={{margin: 20}}>
+                                    <MessageBox
+                                        title="Change the Master Password" message="Here you can change the master password. Remember it well as you will lose access to this app as you loose it."></MessageBox>
+                                    
+                                    <View style={{flexDirection: 'row', justifyContent: 'center', marginTop: 20, height: 35}}>
+                                        {this.state.errorMessage != '' ? <View style={{
+                                            borderWidth: 1,
+                                            borderRadius: 50,
+                                            borderColor: COLORS.danger,
+                                            padding: 15,
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            height: 40}}>
+                                                <Icon type="Feather" name='alert-circle' style={{color: COLORS.danger, fontSize: 20, marginRight: 10}}/>
+                                                <Text style={{color: COLORS.danger}}>{this.state.errorMessage}</Text>
+                                        </View>: <></>}
+                                    </View>
 
-                                <View style={{flexDirection: 'column', paddingTop: 20}}>
-                                    <Text style={{fontSize: 14}}>Enter New Password</Text>
-                                    <TextInput 
-                                        secureTextEntry={true}
-                                        placeholderTextColor={'#ccc'} 
-                                        style={{borderColor: COLORS.dark, color: '#666', borderBottomWidth: 1, paddingVertical: 5, marginBottom: 30}} 
-                                        placeholder="Password"
-                                        value={this.state.newPassword}
-                                        onChangeText={(text) => {this.setState({newPassword: text})}}/>
-                                        
-                                    <Text style={{fontSize: 14}}>Confirm Password</Text>
-                                    <TextInput 
-                                        secureTextEntry={true}
-                                        placeholderTextColor={'#ccc'} 
-                                        style={{borderColor: COLORS.dark, color: '#666', borderBottomWidth: 1, paddingVertical: 5, marginBottom: 50}} 
-                                        placeholder="Password"
-                                        value={this.state.confirmation}
-                                        onChangeText={(text) => {this.setState({confirmation: text})}}/>
+                                    <View style={{flexDirection: 'column', paddingTop: 20}}>
+                                        <Text style={{fontSize: 14, color: COLORS.fontPrimary}}>Enter New Password</Text>
+                                        <TextInput 
+                                            secureTextEntry={true}
+                                            placeholderTextColor={COLORS.highlight} 
+                                            style={{borderColor: COLORS.highlight, color: COLORS.fontPrimary, borderBottomWidth: 1, paddingVertical: 5, marginBottom: 30}} 
+                                            placeholder="Password"
+                                            value={this.state.newPassword}
+                                            onChangeText={(text) => {this.setState({newPassword: text})}}/>
+                                            
+                                        <Text style={{fontSize: 14, color: COLORS.fontPrimary}}>Confirm Password</Text>
+                                        <TextInput 
+                                            secureTextEntry={true}
+                                            placeholderTextColor={COLORS.highlight} 
+                                            style={{borderColor: COLORS.highlight, color: COLORS.fontPrimary, borderBottomWidth: 1, paddingVertical: 5, marginBottom: 50}} 
+                                            placeholder="Password"
+                                            value={this.state.confirmation}
+                                            onChangeText={(text) => {this.setState({confirmation: text})}}/>
 
-                                    <OutlineButton 
-                                        title="CONFIRM" 
-                                        icon="check" 
-                                        color={COLORS.primary}
-                                        onPress={() => {this.confirm()}}></OutlineButton>
-                                    <OutlineButton 
-                                        title="CANCEL" 
-                                        icon="x" 
-                                        color={COLORS.dark}
-                                        onPress={() => {this.quit()}}></OutlineButton>
-                                </View>
-                            </View>                        
-                        </ScrollView>
-                    </View>
-                </Transition>
+                                        <OutlineButton 
+                                            title="CONFIRM" 
+                                            icon="check" 
+                                            color={COLORS.primary}
+                                            onPress={() => {this.confirm()}}></OutlineButton>
+                                        <OutlineButton 
+                                            title="CANCEL" 
+                                            icon="x" 
+                                            color={COLORS.dark}
+                                            onPress={() => {this.quit()}}></OutlineButton>
+                                    </View>
+                                </View>                        
+                            </ScrollView>
+                        </View>
+                    </Transition>
+                </View>
             </>
         )
     }
@@ -185,7 +187,6 @@ const styles = StyleSheet.create({
     }, 
     headerLayout: {
         height: 80,
-        backgroundColor: COLORS.header,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center'

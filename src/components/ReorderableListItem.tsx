@@ -109,9 +109,11 @@ class ReorderableListItem extends React.Component<Props> {
                     <Animated.View
                         style={{
                             ...styles.itemLayout,
+                            borderColor: COLORS.highlight,
+                            backgroundColor: COLORS.background,
                             height: this.props.height,
                             transform: [{translateY: this.props.offset}],
-                            backgroundColor: this.color.interpolate({inputRange: [0, 1, 2], outputRange: ['#fff', '#eee', '#ddd']})}}>
+                            backgroundColor: this.color.interpolate({inputRange: [0, 1, 2], outputRange: [COLORS.background, COLORS.highlight, COLORS.highlight]})}}>
                                 {this.props.children}
                     </Animated.View>
             </Animated.View>
@@ -125,8 +127,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderBottomWidth: 1,
-        borderColor: '#ccc',
-        backgroundColor: '#fff',
         padding: 18,
     }
 });

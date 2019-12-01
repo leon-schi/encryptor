@@ -28,23 +28,28 @@ class AttributeItem extends React.Component<Props> {
         return (
             <View style={{
                 height: this.itemHeight,
+                borderColor: COLORS.highlight,
                 ...styles.listItemLayout,
                 ...this.props.style
             }}>
                 <View style={{flex: 6}}>
-                    <TouchableNativeFeedback underlayColor={COLORS.highlight} onPress={this.props.onPress}>
+                    <TouchableNativeFeedback 
+                        background={TouchableNativeFeedback.Ripple(COLORS.highlight, false)} 
+                        onPress={this.props.onPress}>
                         <View style={styles.listItemAttributeLayout}>
                             <View style={{flex: 1, paddingHorizontal: 5}}>
                                 <Text numberOfLines={1} style={styles.listTitleLayout}>{this.props.name}</Text>
                             </View>
                             <View style={{flex: 1}}>
-                                <Text numberOfLines={1}>{this.props.value}</Text>
+                                <Text numberOfLines={1} style={{color: COLORS.fontPrimary}}>{this.props.value}</Text>
                             </View>    
                         </View>
                     </TouchableNativeFeedback>
                 </View>
                 <View style={{flex: 1}}>
-                    <TouchableNativeFeedback underlayColor={COLORS.highlight} onPress={this.props.onCopy}>
+                    <TouchableNativeFeedback 
+                        background={TouchableNativeFeedback.Ripple(COLORS.highlight, false)} 
+                        onPress={this.props.onCopy}>
                         <View style={styles.listItemCopyButtonLayout}>
                             <Icon type="Feather" name="copy" style={{color: COLORS.dark}}></Icon>
                         </View>
@@ -59,7 +64,6 @@ const styles = StyleSheet.create({
     listItemLayout: {
         flexDirection: 'row',
         borderBottomWidth: 1,
-        borderColor: COLORS.highlight,
         alignItems: 'center',
         justifyContent: 'center'
     },

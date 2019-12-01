@@ -21,13 +21,13 @@ class MessageBox extends React.Component<Props> {
         return (
             <View elevation={this.elevation()} style={{
                 alignItems: 'center',
-                backgroundColor: '#eeeeee',
+                backgroundColor: COLORS.searchBar,
                 padding: 20,
                 borderRadius: 5,
                 ...this.props.style
             }}>
-                <H3 style={{marginBottom: 10}}>{this.props.title}</H3>
-                <Text style={{color: '#999', textAlign: 'center'}}>{this.props.message}</Text>
+                <H3 style={{marginBottom: 10, color: COLORS.fontPrimary}}>{this.props.title}</H3>
+                <Text style={{color: COLORS.fontSecondary, textAlign: 'center'}}>{this.props.message}</Text>
             </View>
         );
     }

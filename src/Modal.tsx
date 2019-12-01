@@ -4,8 +4,8 @@ import {
     NavigationScreenProp,
     NavigationState,
     NavigationEvents } from 'react-navigation';
-import { StyleSheet, TouchableHighlight, View, BackHandler } from 'react-native';
-import { Text, Container, H1, H3, Form, Item, Label, Input, Content, Root } from 'native-base';
+import { StyleSheet, TouchableHighlight, View, BackHandler, TextInput } from 'react-native';
+import { Text, Container, H1, H3, Form, Item, Label, Input, Content, Root, Col } from 'native-base';
 import { Transition } from 'react-navigation-fluid-transitions'
 
 import COLORS from './Colors'
@@ -111,22 +111,22 @@ export default class Modal extends React.Component<Props, State> {
         return (
             <Root>
                 <NavigationEvents onWillFocus={this.onWillFocus}/>
-                
-                <Popup visible={this.state.deletionPopupVisible}>
-                    <H3>Confirm</H3>
-                    <Text>Do you really want to delete this attribute?</Text>
+
+                <Popup visible={this.state.deletionPopupVisible} style={{backgroundColor: COLORS.popup}}>
+                    <H3 style={{color: COLORS.fontPrimary}}>Confirm</H3>
+                    <Text style={{color: COLORS.fontPrimary}}>Do you really want to delete this attribute?</Text>
 
                     <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
                         <TouchableHighlight
                             activeOpacity={0.5}
-                            underlayColor="#ccc"
+                            underlayColor={COLORS.highlight}
                             style={{padding: 5, borderRadius: 2, marginRight: 10}}
                             onPress={this.hideDeletionPopup}>
-                            <Text>CANCEL</Text>
+                            <Text style={{color: COLORS.fontPrimary}}>CANCEL</Text>
                         </TouchableHighlight>
                         <TouchableHighlight
                             activeOpacity={0.5}
-                            underlayColor="#ccc"
+                            underlayColor={COLORS.highlight}
                             style={{padding: 5, borderRadius: 2}}
                             onPress={() => {
                                 this.hideDeletionPopup();
@@ -137,34 +137,62 @@ export default class Modal extends React.Component<Props, State> {
                     </View>
                 </Popup>
 
-                <Container style={{flex: 1, marginTop: 25}}>
+                <Container style={{flex: 1, backgroundColor: COLORS.background}}>
+                    <View style={{height: 25}}/>
 
                     <Content style={styles.contentLayout}>
 
                         <Transition appear={flowTransition}>
                             <View style={{backgroundColor: COLORS.background}}>    
                                 <View style={styles.headLayout}>
-                                    <IconicToolButton style={{flex: 1}} icon="arrow-left" onPress={this.cancel}></IconicToolButton>
+                                    <IconicToolButton color={COLORS.fontPrimary} style={{flex: 1}} icon="arrow-left" onPress={this.cancel}></IconicToolButton>
                                     <View style={{flex: 6, paddingLeft: 30, height: 50}}>
                                         <View style={{height: 20}}>
-                                            <Text style={{fontSize: 12}}>ATTRIBUTE</Text>
+                                            <Text style={{fontSize: 12, color: COLORS.fontPrimary}}>ATTRIBUTE</Text>
                                         </View>
                                         <View style={{flex: 40}}>
-                                            <H1>{this.state.name}</H1>
+                                            <H1 style={{color: COLORS.fontPrimary}}>{this.state.name}</H1>
                                         </View>
                                     </View>
                                 </View>
 
-                                <Form style={styles.formLayout}>
+                                {/*<Form style={styles.formLayout}>
                                     <Item fixedLabel style={{flexDirection: 'row'}}>
-                                        <Label style={{flex: 1, fontWeight: 'bold'}}>Name</Label>
-                                        <Input style={{flex: 4}} value={this.state.name} onChangeText={(text) => {this.setState({name: text})}}/>
+                                        <Label style={{flex: 1, fontWeight: 'bold', color: COLORS.fontSecondary}}>Name</Label>
+                                        <Input style={{flex: 4, color: COLORS.fontPrimary}} value={this.state.name} onChangeText={(text) => {this.setState({name: text})}}/>
                                     </Item>
                                     <Item fixedLabel last style={{flexDirection: 'row'}}>
-                                        <Label style={{flex: 1, fontWeight: 'bold'}}>Value</Label>
-                                        <Input style={{flex: 4}} value={this.state.value} onChangeText={(text) => {this.setState({value: text})}} />
+                                        <Label style={{flex: 1, fontWeight: 'bold', color: COLORS.fontSecondary}}>Value</Label>
+                                        <Input style={{flex: 4, color: COLORS.fontPrimary}} value={this.state.value} onChangeText={(text) => {this.setState({value: text})}} />
                                     </Item>
-                                </Form>
+                                </Form>*/}
+
+                                <View style={{marginBottom: 10, marginTop: 30, flexDirection: 'row', borderBottomWidth: 1, borderColor: COLORS.highlight}}>
+                                    <View style={{flex: 1, paddingTop: 5, paddingRight: 20}}>
+                                        <Text style={{color: COLORS.fontSecondary, textAlign: 'right', fontWeight: 'bold'}}>Name</Text>
+                                    </View>
+                                    <View style={{flex: 4}}>
+                                        <TextInput 
+                                            placeholder="Attribute Name" 
+                                            placeholderTextColor={COLORS.strongHighlight}
+                                            style={{color: COLORS.fontPrimary, padding: 1, fontSize: 16, marginBottom: 10}}
+                                            value={this.state.name}
+                                            onChangeText={(text) => {this.setState({name: text})}}/>
+                                    </View>
+                                </View>
+                                <View style={{marginBottom: 30, flexDirection: 'row', borderBottomWidth: 1, borderColor: COLORS.highlight}}>
+                                    <View style={{flex: 1, paddingTop: 5, paddingRight: 20}}>
+                                        <Text style={{color: COLORS.fontSecondary, textAlign: 'right', fontWeight: 'bold'}}>Value</Text>
+                                    </View>
+                                    <View style={{flex: 4}}>
+                                        <TextInput 
+                                            placeholder="Attribute Value" 
+                                            placeholderTextColor={COLORS.strongHighlight}
+                                            style={{color: COLORS.fontPrimary, padding: 1, fontSize: 16, marginBottom: 10}}
+                                            value={this.state.value}
+                                            onChangeText={(text) => {this.setState({value: text})}}/>
+                                    </View>
+                                </View>
 
                                 {firstButton}
                                 {secondButton}

@@ -37,7 +37,10 @@ class OutlineButton extends React.Component<Props> {
             type = 'Feather';
 
         return (
-            <TouchableNativeFeedback style={styles.buttonLayoutContainer} onPress={() => {this.onPress()}}>
+            <TouchableNativeFeedback 
+                background={TouchableNativeFeedback.Ripple(this.props.color, false)}
+                style={styles.buttonLayoutContainer} 
+                onPress={() => {this.onPress()}}>
                 <View style={{
                         ...this.props.style,
                         ...styles.buttonLayout,

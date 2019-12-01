@@ -189,7 +189,7 @@ export default class Login extends React.Component<Props, State> {
                     }
                     <Image source={require('../assets/outlinelogowhite.png')} style={{width: 100, height: 100}}/>
                     <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 30, marginBottom: 10}}>Encryptor</Text>
-                    <Icon type="Feather" name='lock' style={{color: "white", fontSize: 35, marginRight: 10}}/>
+                    <Icon type="Feather" name='lock' style={{color: "white", fontSize: 35, marginRight: 10, marginBottom: 10}}/>
 
                     {this.getMessage()}
                     {this.getModeInfo()}

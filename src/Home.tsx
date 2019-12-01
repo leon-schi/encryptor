@@ -25,11 +25,9 @@ import COLORS from './Colors';
 
 /*
 TODOS
-- logo
-- funny fast fine first screen
+- TextInputs for Modal
 - Logout time
 - Reencrypt
-- Dark Mode
 */
 
 const itemHeight = 85;
@@ -180,40 +178,46 @@ export default class HomeComponent extends React.Component<Props, State> {
             <>
                 <NavigationEvents onWillFocus={this.onWillFocus}/>
 
-                <Popup visible={this.state.loading} style={{marginHorizontal: 100, marginTop: 300}}>
+                <Popup visible={this.state.loading} style={{marginHorizontal: 100, marginTop: 300, backgroundColor: COLORS.popup}}>
                     <View style={{flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
-                        <ActivityIndicator style={{flex: 1}} size="large" color="#000"/>
-                        <Text style={{flex: 3, textAlign: 'center'}}>loading...</Text>
+                        <ActivityIndicator style={{flex: 1}} size="large" color={COLORS.fontPrimary}/>
+                        <Text style={{flex: 3, textAlign: 'center', color: COLORS.fontPrimary}}>loading...</Text>
                     </View>
                 </Popup>
 
 
-                <View style={{marginTop: 0}}>
+                <View style={{marginTop: 0, backgroundColor: COLORS.background}}>
     
-                    <View elevation={3} style={styles.headerLayout}>
+                    <View elevation={3} style={{
+                        ...styles.headerLayout,
+                        backgroundColor: COLORS.header}}>
                         <Body style={styles.headerBodyLayout}>
                             <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 18}}>
                                 <Animated.View style={{flex: 1, transform: [{translateX: this.leftOffset}]}}>
-                                    <IconicToolButton 
-                                        style={{flex: 1}} icon="lock"
+                                    <IconicToolButton
+                                        color={COLORS.fontPrimary} 
+                                        style={{flex: 1, color: COLORS.fontPrimary}} 
+                                        icon="lock"
                                         onPress={this.logout}></IconicToolButton>
                                 </Animated.View>
-                                <Title style={{flex: 7, fontSize: 24, color: 'black'}}>Encryptor</Title>
+                                <Title style={{flex: 7, fontSize: 24, color: COLORS.fontPrimary}}>Encryptor</Title>
                                 <Animated.View style={{flex: 1, transform: [{translateX: this.rightOffset}]}}>
                                     <IconicToolButton 
-                                        style={{flex: 1}} icon="chevron-down"
+                                        color={COLORS.fontPrimary} 
+                                        style={{flex: 1}} 
+                                        icon="chevron-down"
                                         onPress={() => {this.props.navigation.navigate('Settings');}}></IconicToolButton>
                                 </Animated.View>
                             </View>
                         </Body>
                     </View>
 
-                    <StatusBar translucent={true} animated={true} backgroundColor="rgba(255,255, 255,0)" barStyle="dark-content" />
+                    <StatusBar translucent={true} animated={true} backgroundColor="rgba(255,255, 255,0)" barStyle={COLORS.barStyle} />
 
                     <View style={{flexDirection: 'column', backgroundColor: COLORS.background}}>
                         <View elevation={2} style={{
                                 height: 50,
-                                backgroundColor: '#eee', 
+                                backgroundColor: COLORS.searchBar, 
                                 marginHorizontal: 10, 
                                 marginTop: 20, 
                                 borderRadius: 50, 
@@ -222,9 +226,10 @@ export default class HomeComponent extends React.Component<Props, State> {
                                 justifyContent: 'center', 
                                 borderWidth: 0, 
                                 paddingLeft: 10}}>
-                            <Icon style={{flex: 1, color: '#666', marginLeft: 10}} name="search"></Icon>
+                            <Icon style={{flex: 1, color: COLORS.fontSecondary, marginLeft: 10}} name="search"></Icon>
                             <TextInput 
-                                style={{flex: 7, fontSize: 18}} 
+                                style={{flex: 7, fontSize: 18, color: COLORS.fontSecondary}}
+                                placeholderTextColor={COLORS.fontTertiary}
                                 placeholder="Search" 
                                 value={this.state.searchText}
                                 onChangeText={(text) => {
@@ -234,7 +239,7 @@ export default class HomeComponent extends React.Component<Props, State> {
 
                         <View>    
                             <View style={styles.itemContainerLayout}>
-                                <Text style={{color: '#999', fontWeight: 'bold', marginBottom: 9}}>YOUR COLLECTIONS</Text>
+                                <Text style={{color: COLORS.fontSecondary, fontWeight: 'bold', marginBottom: 9}}>YOUR COLLECTIONS</Text>
                                 
                                 {messageBox}
 
@@ -269,14 +274,15 @@ export default class HomeComponent extends React.Component<Props, State> {
                 </AnimatedFab>
 
                 {/* Dialog Window */}
-                <Popup visible={this.state.modalVisible}>
-                    <H3>Create a new Collection</H3>
-                    <Text>Please Enter the name of the new Collection</Text>
+                <Popup visible={this.state.modalVisible} style={{backgroundColor: COLORS.popup}}>
+                    <H3 style={{color: COLORS.fontPrimary}}>Create a new Collection</H3>
+                    <Text style={{color: COLORS.fontPrimary}}>Please Enter the name of the new Collection</Text>
 
                     <View style={{marginVertical: 30}}>
                         <TextInput 
                             placeholder="Name" 
-                            style={{borderBottomWidth: 1, borderColor: '#ddd', padding: 1}}
+                            placeholderTextColor={COLORS.strongHighlight}
+                            style={{borderBottomWidth: 1, color: COLORS.fontPrimary, borderColor: COLORS.strongHighlight, padding: 1}}
                             value={this.state.newCollectionName}
                             onChangeText={(text) => {this.setState({newCollectionName: text})}}/>
                     </View>
@@ -284,14 +290,14 @@ export default class HomeComponent extends React.Component<Props, State> {
                     <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
                         <TouchableHighlight
                             activeOpacity={0.5}
-                            underlayColor="#ccc"
+                            underlayColor={COLORS.highlight}
                             style={{padding: 5, borderRadius: 2, marginRight: 10}}
                             onPress={this.hideDialog}>
-                            <Text>CANCEL</Text>
+                            <Text style={{color: COLORS.fontPrimary}}>CANCEL</Text>
                         </TouchableHighlight>
                         <TouchableHighlight
                             activeOpacity={0.5}
-                            underlayColor="#ccc"
+                            underlayColor={COLORS.highlight}
                             style={{padding: 5, borderRadius: 2}}
                             onPress={() => {this.addItem()}}>
                             <Text style={{color: COLORS.primary}}>OK</Text>
@@ -312,7 +318,6 @@ const styles = StyleSheet.create({
     }, 
     headerLayout: {
         height: 80,
-        backgroundColor: COLORS.header,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center'
