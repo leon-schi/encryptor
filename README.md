@@ -28,7 +28,7 @@ Dark Mode
 
 ## How to use
 
-**A prebuilt version of this app as .apk file can be downloaded [here]()**
+**A prebuilt version of this app as .apk file can be downloaded [here](https://drive.google.com/file/d/1MfDRMwh2Kyfr4xxRPn68ORZ6hnfiYGDo/view?usp=sharing)**
 
 clone this repo and run
 
