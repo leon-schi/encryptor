@@ -18,7 +18,9 @@ It uses SHA-256 hashing and AES-256 Encryption to encrypt your secrets. They are
 
 # Screenshots
 
-![](./screenshots/demo.gif)
+<p align="center">
+  <img src="./screenshots/demo.gif"/>
+</p>
 
 ![](./screenshots/light.png)
 
