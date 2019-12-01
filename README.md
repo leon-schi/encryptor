@@ -8,8 +8,8 @@ It uses SHA-256 hashing and AES-256 Encryption to encrypt your secrets. They are
 
 ## Features
 
-- Storing and encryption of arbitrary key value pairs on the device (offline)
-- Password protection
+- Securely storing and encrypting arbitrary key value pairs on the device (offline)
+- Password protection without storing a hash that could trace back to the password using rainbow tables
 - Support for Fingerprint and FaceID authentication
 - Use of an individual key for each collection
 - Automatic logout after x minutes
